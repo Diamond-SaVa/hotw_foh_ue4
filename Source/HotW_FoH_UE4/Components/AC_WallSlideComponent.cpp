@@ -250,3 +250,30 @@ void UAC_WallSlideComponent::ResetOnLanded()
 	bWallDetectTop = false;
 }
 
+void UAC_WallSlideComponent::LedgeUpAnim()
+{
+	if (PCOwner->GetMovementState() == EMovementState::ECS_LedgeState && 
+		PCOwner->GetActionState() == EActionState::EAct_NilState)
+	{
+		PCOwner->SetActionState(EActionState::EAct_DodgeState);
+
+		const FString SectionString = "Up";
+		const FName SectionName = FName(*SectionString);
+		PCOwner->PlayAnimMontage_Safe(AM_LedgeAction, SectionName);
+		PCOwner->SetActionState(EActionState::EAct_DodgeState);
+	}
+}
+
+void UAC_WallSlideComponent::LedgeDownAnim()
+{
+	if (PCOwner->GetMovementState() == EMovementState::ECS_LedgeState && 
+		PCOwner->GetActionState() == EActionState::EAct_NilState)
+	{
+		PCOwner->SetActionState(EActionState::EAct_DodgeState);
+		PCOwner->SetMovementState(EMovementState::ECS_AirState);
+		const FString SectionString = "Down";
+		const FName SectionName = FName(*SectionString);
+		PCOwner->PlayAnimMontage_Safe(AM_LedgeAction, SectionName);
+		PCOwner->SetActionState(EActionState::EAct_PerfectDodgeState);
+	}
+}

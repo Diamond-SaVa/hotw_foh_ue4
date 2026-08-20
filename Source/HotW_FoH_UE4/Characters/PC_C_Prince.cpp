@@ -3,7 +3,6 @@
 
 #include "PC_C_Prince.h"
 
-#include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PhysicsVolume.h"
@@ -482,217 +481,17 @@ void APC_C_Prince::Attack()
 
 void APC_C_Prince::LedgeUpAnim()
 {
-	if (MovementState == EMovementState::ECS_LedgeState && ActionState == EActionState::EAct_NilState)
+	if (WallSlideComponent)
 	{
-		SetActionState(EActionState::EAct_DodgeState);
-
-		const FString SectionString = "Up";
-		const FName SectionName = FName(*SectionString);
-		PlayAnimMontage_Safe(AM_LedgeAction, SectionName);
-		SetActionState(EActionState::EAct_DodgeState);
+		WallSlideComponent->LedgeUpAnim();
 	}
 }
 
 void APC_C_Prince::LedgeDownAnim()
 {
-	if (MovementState == EMovementState::ECS_LedgeState && ActionState == EActionState::EAct_NilState)
+	if (WallSlideComponent)
 	{
-		SetActionState(EActionState::EAct_DodgeState);
-		SetMovementState(EMovementState::ECS_AirState);
-		const FString SectionString = "Down";
-		const FName SectionName = FName(*SectionString);
-		PlayAnimMontage_Safe(AM_LedgeAction, SectionName);
-		SetActionState(EActionState::EAct_PerfectDodgeState);
-	}
-}
-
-void APC_C_Prince::WallDetection()
-{
-	// If the character is doing an action, it's already in the MovementState of LedgeState, or it's not in the air, 
-	// do not process further code in this function.
-	if (ActionState != EActionState::EAct_NilState || MovementState != EMovementState::ECS_AirState)
-	{
-		return;
-	}
-	
-	// Must also work only if the World and the Capsule Component of the character exists
-	UWorld* World = GetWorld();
-	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
-	
-	// and also only if the character is in the air
-	if (IsValid(World) == false || IsValid(CapsuleComp) == false)
-	{
-		return;
-	}
-	
-	// Creates the FHitResult variable
-	FHitResult Hit;
-	
-	// Makes a constant expression for the Collision Channel to detect
-	constexpr ECollisionChannel WallTraceChannel = ECollisionChannel::ECC_WorldStatic;
-	
-	// Makes the Collision Parameters in which the trace will ignore the character
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-	
-	/* Makes the calculations for the Line Trace to check for Static Walls */
-	
-	// Constant Expressions and Constant Floats
-	const float WallHalfHeightMod = CapsuleComp->GetScaledCapsuleHalfHeight() * WallTraceHeightModifier;
-	const float WallRadiusMod = (CapsuleComp->GetScaledCapsuleRadius()) * StickDirection;
-	constexpr float WallDistanceEnd = 1.0f;
-	
-	/* Set and Modify Vectors */
-	
-	// Set the Top Trace starting position with the capsule's radius as a starting point
-	FVector WallTraceTopStart = GetActorLocation();
-	WallTraceTopStart.X += WallRadiusMod;
-	WallTraceTopStart.Z += WallHalfHeightMod;
-	
-	// Create the End Location for the Top and Bottom Traces and modify their X variable according to the Stick direction 
-	FVector WallTraceTopEnd = WallTraceTopStart;
-	WallTraceTopEnd.X += WallDistanceEnd * StickDirection;
-	
-	// Set different booleans for each wall detection trace, on top and bottom halves of the character,
-	bWallDetectTop = World->LineTraceSingleByChannel(Hit, WallTraceTopStart, WallTraceTopEnd,
-		WallTraceChannel, CollisionParams);
-	
-	if (MovementState == EMovementState::ECS_WallState)
-	{
-		return;
-	}
-	
-	// Take the already worked out calculation from the top starting position for the bottom starting position
-	FVector WallTraceBotStart = WallTraceTopStart;
-	WallTraceBotStart.Z -= WallHalfHeightMod * 2.0f;
-	
-	FVector WallTraceBotEnd = WallTraceBotStart;
-	WallTraceBotEnd.X += WallDistanceEnd * StickDirection;
-	
-	const bool bWallDetectBot = World->LineTraceSingleByChannel(Hit, WallTraceBotStart, WallTraceBotEnd,
-		WallTraceChannel, CollisionParams);;
-	
-	// and then apply both to the final result
-	const bool bWallDetect = bWallDetectTop && bWallDetectBot;
-	
-	// But if a Wall is detected, sets the MovementState to WallState through its proper function
-	if (bWallDetect == true)
-	{
-		TurnToStickDirection();
-		SetMovementState(EMovementState::ECS_WallState);
-		
-		FString SectionText = "Default";
-		
-		UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-		if (IsValid(MoveComp) == true)
-		{
-			float UpVelocity = MoveComp->GetLastUpdateVelocity().Z;
-			constexpr float UpVelocityThreshold = 300.0f;
-			
-			if (UpVelocity > UpVelocityThreshold)
-			{
-				SectionText = "Up";	
-			}
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, "NOT VALID");
-		}
-		
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, SectionText);
-		
-		FName SectionName = *SectionText;
-		
-		PlayAnimMontage_Safe(AM_WallStart, SectionName);
-		return;
-	}
-	
-	// Settings for the Debug Drawing Line
-	const FColor WallTraceColor = FColor::Red;
-	
-	constexpr bool bPersistentLines = false;
-	constexpr float LifeTime = -1.0f;
-	constexpr uint8 DepthPriority = 1;
-	constexpr float Thickness = 10.0f;
-	
-	// Draws the Debug Line to simulate the wall detection 
-	DrawDebugLine(World, WallTraceTopStart, WallTraceTopEnd, WallTraceColor, bPersistentLines, LifeTime,
-		DepthPriority, Thickness);
-	
-	DrawDebugLine(World, WallTraceBotStart, WallTraceBotEnd, WallTraceColor, bPersistentLines, LifeTime,
-		DepthPriority, Thickness);
-}
-
-void APC_C_Prince::LedgeDetection()
-{
-	// When the too side of the trace detects a wall, proceed to check if the character can be ledged
-	if (bWallDetectTop == false || MovementState == EMovementState::ECS_LedgeState || 
-		ActionState == EActionState::EAct_WallJumpState)
-	{
-		return;
-	}
-	
-	// Must also work only if the World and the Capsule Component of the character exists
-	UWorld* World = GetWorld();
-	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
-	
-	// and also only if the character is in the air
-	if (IsValid(World) == false || IsValid(CapsuleComp) == false)
-	{
-		return;
-	}
-	
-	// Creates the FHitResult variable
-	FHitResult Hit;
-	
-	// Makes a constant expression for the Collision Channel to detect
-	constexpr ECollisionChannel WallTraceChannel = ECollisionChannel::ECC_WorldStatic;
-	
-	// Makes the Collision Parameters in which the trace will ignore the character
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(this);
-	
-	// Prepares fewer settings for the detection of the short trace
-	constexpr float TraceDistanceEnd = 1.0f;
-	constexpr float ExtraHeight = 15.0f;
-	const float CharacterDirection = GetActorForwardVector().X; 
-	const float WallHalfHeightMod = CapsuleComp->GetScaledCapsuleHalfHeight() * WallTraceHeightModifier;
-	const float WallRadiusMod = (CapsuleComp->GetScaledCapsuleRadius()) * StickDirection;
-	
-	// Sets the Starting and Ending trace positions using the already established top trace position for the wall trace
-	// Set the Top Trace starting position with the capsule's radius as a starting point
-	FVector LedgeTraceStart = GetActorLocation();
-	LedgeTraceStart.X += WallRadiusMod;
-	LedgeTraceStart.Z += WallHalfHeightMod + ExtraHeight;
-	FVector LedgeTraceEnd = LedgeTraceStart;
-	LedgeTraceEnd.X += TraceDistanceEnd * StickDirection;
-	
-	// Set the new boolean to the opposite of it's hit detection; in other words, if the trace does NOT detect a wall
-	// near and above the character's head, then that means that the character can ledge grab it.
-	const bool LedgeDetected = !World->LineTraceSingleByChannel(Hit, LedgeTraceStart, LedgeTraceEnd,
-		WallTraceChannel, CollisionParams);
-	
-	// Settings for the Debug Drawing Line
-	const FColor WallTraceColor = FColor::Green;
-	
-	constexpr bool bPersistentLines = true;
-	constexpr float LifeTime = 2.0f;
-	constexpr uint8 DepthPriority = 1;
-	constexpr float Thickness = 10.0f;
-	
-	// Draws the Debug Line to simulate the wall detection 
-	DrawDebugLine(World, LedgeTraceStart, LedgeTraceEnd, WallTraceColor, bPersistentLines, LifeTime,
-		DepthPriority, Thickness);
-	
-	// If a ledge is detected, set the proper rotation and also the movement state to LedgeState, and play the
-	// corresponding AnimMontage for ledge grabbing
-	if (LedgeDetected == true)
-	{
-		TurnToStickDirection();
-		SetMovementState(EMovementState::ECS_LedgeState);
-		PlayAnimMontage_Safe(AM_LedgeStart);
-		SetActionState(EActionState::EAct_PerfectDodgeState);
-		SetWallDetectTop(false);
+		WallSlideComponent->LedgeDownAnim();
 	}
 }
 

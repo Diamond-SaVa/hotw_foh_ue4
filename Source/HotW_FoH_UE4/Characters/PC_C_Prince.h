@@ -28,18 +28,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_Dodge;
 	
-	// Animation for Ledging
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
-	UAnimMontage* AM_WallStart;
-	
-	// Animation for Ledging
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
-	UAnimMontage* AM_LedgeStart;
-	
-	// Animation for Ledge Jumping
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
-	UAnimMontage* AM_LedgeAction;
-	
 	// Animation for rising from crouch
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_SwitchAnim;
@@ -134,11 +122,6 @@ public:
 	virtual void LedgeUpAnim();
 	
 	virtual void LedgeDownAnim();
-
-	// Function to detect Walls and Ledges, and react to it as expected
-	void WallDetection();
-	
-	void LedgeDetection();
 	
 	void TurnToStickDirection();
 	

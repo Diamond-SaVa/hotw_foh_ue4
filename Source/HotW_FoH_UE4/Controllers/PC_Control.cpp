@@ -57,7 +57,6 @@ void APC_Control::SetupInputComponent()
 		EIC->BindAction(IA_Attack, ETriggerEvent::Started, this, &APC_Control::ActionAttack);
 		
 		/* Modifier Actions for the InputMovement for camera shifting */
-		// EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &APC_Control::ActionWallAndLedgeDetection);
 		EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionStopWallSliding);
 			
 		/* Modifier Actions (D-Pad/Left Joystick Up and Down) */
@@ -175,17 +174,6 @@ void APC_Control::ActionStopWallSliding()
 	ThePC.Get()->SetWallDetectTop(false);
 }
 
-void APC_Control::ActionWallAndLedgeDetection()
-{
-	if (ThePC.IsValid() == false)
-	{
-		return;
-	}
-	
-	ThePC.Get()->WallDetection();
-	ThePC.Get()->LedgeDetection();
-}
-
 void APC_Control::ActionInteractStart()
 {
 	if (ThePC.IsValid() == false)
@@ -224,6 +212,8 @@ void APC_Control::ActionPressUpEnd()
 
 void APC_Control::ActionPressDownStart()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, "DOWN CALLED");
+	
 	if (ThePC.IsValid() == false)
 	{
 		return;

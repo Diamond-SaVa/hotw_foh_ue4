@@ -106,9 +106,6 @@ public:
 	void ActionStopWallSliding();
 	
 	UFUNCTION()
-	void ActionWallAndLedgeDetection();
-	
-	UFUNCTION()
 	void ActionInteractStart();
 	
 	UFUNCTION()

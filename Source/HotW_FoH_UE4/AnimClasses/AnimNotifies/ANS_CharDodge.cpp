@@ -53,7 +53,6 @@ void UANS_CharDodge::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceB
 		default:
 			break;
 		}
-		
 	}
 }
 

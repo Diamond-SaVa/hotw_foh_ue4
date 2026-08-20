@@ -17,11 +17,14 @@ protected:
 	UPROPERTY()
 	APC_C_Prince* PCOwner;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Asset")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_WallStart;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Asset")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_LedgeStart;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
+	UAnimMontage* AM_LedgeAction;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
 	float WallTraceHeightModifier = 0.75f;
@@ -54,4 +57,8 @@ public:
 	void LedgeDetection();
 	
 	void ResetOnLanded();
+	
+	void LedgeUpAnim();
+	
+	void LedgeDownAnim();
 };
