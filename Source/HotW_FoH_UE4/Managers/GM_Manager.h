@@ -20,33 +20,25 @@ class HOTW_FOH_UE4_API AGM_Manager : public AGameModeBase, public IManager
 {
 	GENERATED_BODY()
 	
-public:
-	// In the correct order, spawn: Prince, Girl, and then Camera
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Actor Levels")
-	TArray<TSoftClassPtr<AActor>> ArrayOfPreparedActors;
-	
+public:	
+	// Path to the new level to load
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Level Data")
 	TSoftObjectPtr<UWorld> CurrentLevel;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Level Data")
-	TSoftObjectPtr<UWorld> CameraLevel;
-	
+	// Memorizes which character is being in control
 	int32 CurrentCharacterSlot;
 
-private:	
+private:
+	// Instance of the currently opened level
 	UPROPERTY()
 	ULevelStreamingDynamic* LoadedLevelInstance;
 	
 public:
+	// Event to be broadcasted when a character switch is successfully done
 	UPROPERTY(BlueprintAssignable, Category="Switch Events")
 	FOnCharacterSwitch OnCharacterSwitch;
 	
 	virtual void BeginPlay() override;
-	
-	/** /
-	UFUNCTION(BlueprintCallable, Category="Save Data Functions")
-	void CheckSaveFiles(UUserWidget* SaveFileWidget);
-	/**/
 	
 	/* Pure C++ Interface Functions for Saving and Loading Data */
 	

@@ -5,8 +5,8 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "HotW_FoH_UE4/Characters/PC_C_Prince.h"
 #include "GameFramework/GameModeBase.h"
+#include "HotW_FoH_UE4/Characters/PC_C_Prince.h"
 #include "HotW_FoH_UE4/Interfaces/Manager.h"
 
 
@@ -44,38 +44,64 @@ void APC_Control::SetupInputComponent()
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent))
 	{		
 		/* Movement Actions (D-Pad/Left Joystick) */
-		// Walking and Run
-		EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &APC_Control::ActionMovement);
-		EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionMovementStop);
+		if (IA_Move != nullptr)
+		{
+			// Walking and Run
+			EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &APC_Control::ActionMovement);
+			EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionMovementStop);
+			
+			// Stop Wall Sliding conditions 
+			EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionStopWallSliding);
+		}
 		
 		/* Jumping Actions (Bottom Face Button) */
-		// Ledge Jump Action
-		EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &APC_Control::ActionJumpStart);
-		EIC->BindAction(IA_Jump, ETriggerEvent::Completed, this, &APC_Control::ActionJumpEnd);
+		if (IA_Jump != nullptr)
+		{
+			// Ledge Jump Action
+			EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &APC_Control::ActionJumpStart);
+			EIC->BindAction(IA_Jump, ETriggerEvent::Completed, this, &APC_Control::ActionJumpEnd);
+		}
 		
 		/* Attacking Actions (Left Face Button) */
-		EIC->BindAction(IA_Attack, ETriggerEvent::Started, this, &APC_Control::ActionAttack);
+		if (IA_Attack != nullptr)
+		{
+			EIC->BindAction(IA_Attack, ETriggerEvent::Started, this, &APC_Control::ActionAttack);
+		}
 		
-		/* Modifier Actions for the InputMovement for camera shifting */
-		EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionStopWallSliding);
-			
+		/* Interaction Button (Right Face Button) */
+		if (IA_Interact != nullptr)
+		{
+			// Interact
+			EIC->BindAction(IA_Interact, ETriggerEvent::Started, this, &APC_Control::ActionInteractStart);
+		}
+		
 		/* Modifier Actions (D-Pad/Left Joystick Up and Down) */
-		// Interact
-		EIC->BindAction(IA_Interact, ETriggerEvent::Started, this, &APC_Control::ActionInteractStart);
+		if (IA_LookUp != nullptr)
+		{
+			// Look Up
+			EIC->BindAction(IA_LookUp, ETriggerEvent::Started, this, &APC_Control::ActionPressUpStart);
+			EIC->BindAction(IA_LookUp, ETriggerEvent::Completed, this, &APC_Control::ActionPressUpEnd);
+		}
 		
-		// Look Up
-		EIC->BindAction(IA_LookUp, ETriggerEvent::Started, this, &APC_Control::ActionPressUpStart);
-		EIC->BindAction(IA_LookUp, ETriggerEvent::Completed, this, &APC_Control::ActionPressUpEnd);
+		if (IA_LookDown != nullptr)
+		{
+			// Crouch
+			EIC->BindAction(IA_LookDown, ETriggerEvent::Started, this, &APC_Control::ActionPressDownStart);
+			EIC->BindAction(IA_LookDown, ETriggerEvent::Completed, this, &APC_Control::ActionPressDownEnd);
+		}
 		
-		// Crouch
-		EIC->BindAction(IA_Crouch, ETriggerEvent::Started, this, &APC_Control::ActionPressDownStart);
-		EIC->BindAction(IA_Crouch, ETriggerEvent::Completed, this, &APC_Control::ActionPressDownEnd);
+		/* Dodge and Dash Abilities (Left Shoulder Button) */
+		if (IA_Dodge != nullptr)
+		{
+			// Dodge
+			EIC->BindAction(IA_Dodge, ETriggerEvent::Started, this, &APC_Control::ActionDodgeStart);
+		}
 		
-		// Dodge
-		EIC->BindAction(IA_Dodge, ETriggerEvent::Started, this, &APC_Control::ActionDodgeStart);
-		
-		// Switch
-		EIC->BindAction(IA_Switch, ETriggerEvent::Started, this, &APC_Control::ActionSwitchCharacter);
+		if (IA_Switch != nullptr)
+		{
+			// Switch
+			EIC->BindAction(IA_Switch, ETriggerEvent::Started, this, &APC_Control::ActionSwitchCharacter);
+		}
 	}
 	/**/
 }
@@ -316,12 +342,4 @@ void APC_Control::SendCharacterToManager()
 	{
 		Manager->SetActiveCharacter(CurrentCharacterSlot, ThePC.Get());
 	}
-}
-
-bool APC_Control::CanAssignControls() const
-{
-	const bool bResult = IsValid(IA_Move) && IsValid(IA_Attack) && IsValid(IA_Attack) && IsValid(IA_Interact) &&
-			IsValid(IA_LookUp) && IsValid(IA_Crouch) && IsValid(IA_Dodge);
-		
-	return bResult;
 }

@@ -122,6 +122,11 @@ void APC_C_Prince::Landed(const FHitResult& Hit)
 	// Call parent Landed event so it can change the MovementSate to the Grounded State.
 	Super::Landed(Hit);
 	
+	if (IsValid(WallSlideComponent) == true)
+	{
+		WallSlideComponent->ResetOnLanded();
+	}
+	
 	SetWallDetectTop(false);
 	
 	// If player is holding the button stick or D-Pad down, start crouching on landing

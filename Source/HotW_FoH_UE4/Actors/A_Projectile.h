@@ -20,9 +20,8 @@ protected:
 	
 	FTimerHandle TimerHandle;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
-	float MovementSpeed = 1000.0f;
-	
+	float BounceSpeed = 400.0;
+
 public:
 	// 0 if active, 1 if inactive
 	int32 ProjectileIsActive = 0;
@@ -38,7 +37,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	virtual void ActivateProjectile(AActor* ActorSource);
+	virtual void ActivateProjectile(AActor* ActorSource, float MovementSpeedChange, float BounceSpeedChange,
+		float GravityChange);
 	
 	virtual void DeactivateProjectile();
 	

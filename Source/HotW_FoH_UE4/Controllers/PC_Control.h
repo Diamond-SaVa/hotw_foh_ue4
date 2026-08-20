@@ -45,7 +45,7 @@ public:
 	
 	// Input Action used for Crouch
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Input Assets")
-	UInputAction* IA_Crouch;
+	UInputAction* IA_LookDown;
 	
 	// Input Action used for Dodging and Dashing
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
@@ -75,10 +75,6 @@ protected:
 	
 public:
 	virtual void SetupInputComponent() override;
-	
-	void CharacterSetUpFromBeginPlay(APC_C_Prince* PlayableCharacter, int32 CharacterID);
-	
-	void ReenableSwitch();
 	
 	/* Input Action Bound Functions */
 	
@@ -126,7 +122,9 @@ public:
 	UFUNCTION()
 	void ActionSwitchCharacter();
 	
-	void SendCharacterToManager();
+	void CharacterSetUpFromBeginPlay(APC_C_Prince* PlayableCharacter, int32 CharacterID);
 	
-	bool CanAssignControls() const;
+	void ReenableSwitch();
+	
+	void SendCharacterToManager();
 };

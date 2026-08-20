@@ -36,7 +36,7 @@ protected:
 	float WallRadiusMod;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
-	bool bWallDetectTop;
+	int32 IsDetectingWallFromTop;
 	
 
 public:

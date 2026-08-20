@@ -103,8 +103,17 @@ void UAC_WallSlideComponent::WallDetection()
 	WallTraceTopEnd.X += WallDistanceEnd * CharacterDirection;
 	
 	// Set different booleans for each wall detection trace, on top and bottom halves of the character,
-	bWallDetectTop = World->LineTraceSingleByChannel(Hit, WallTraceTopStart, WallTraceTopEnd,
+	const bool bWallDetectTop = World->LineTraceSingleByChannel(Hit, WallTraceTopStart, WallTraceTopEnd,
 		WallTraceChannel, CollisionParams);
+	
+	if (bWallDetectTop == true)
+	{
+		IsDetectingWallFromTop = 1;
+	}
+	else
+	{
+		IsDetectingWallFromTop = 0;
+	}
 	
 	if (PCOwner->GetMovementState() == EMovementState::ECS_WallState)
 	{
@@ -176,7 +185,7 @@ void UAC_WallSlideComponent::WallDetection()
 void UAC_WallSlideComponent::LedgeDetection()
 {
 	// When the too side of the trace detects a wall, proceed to check if the character can be ledged
-	if (PCOwner == nullptr || bWallDetectTop == false || 
+	if (PCOwner == nullptr || IsDetectingWallFromTop == 0 || 
 		PCOwner->GetMovementState() == EMovementState::ECS_LedgeState || 
 		PCOwner->GetActionState() != EActionState::EAct_NilState)
 	{
@@ -247,7 +256,7 @@ void UAC_WallSlideComponent::LedgeDetection()
 
 void UAC_WallSlideComponent::ResetOnLanded()
 {
-	bWallDetectTop = false;
+	IsDetectingWallFromTop = 0;
 }
 
 void UAC_WallSlideComponent::LedgeUpAnim()

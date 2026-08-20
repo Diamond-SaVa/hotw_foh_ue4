@@ -26,6 +26,21 @@ void UAC_ShootingComponent::BeginPlay()
 	
 }
 
+void UAC_ShootingComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	if (UWorld* World = GetWorld())
+	{
+		FTimerManager& WorldTimer = World->GetTimerManager();
+		
+		if (WorldTimer.IsTimerActive(CooldownTimerHandle))
+		{
+			WorldTimer.ClearTimer(CooldownTimerHandle);
+		}
+	}
+}
+
 void UAC_ShootingComponent::ShootNextAvailableProjectile()
 {
 	if (CanShoot == 1 || ProjectileArray.Num() == 0)
@@ -44,7 +59,8 @@ void UAC_ShootingComponent::ShootNextAvailableProjectile()
 		{
 			if (Shoot->ProjectileIsActive == 0)
 			{
-				Shoot->ActivateProjectile(GetOwner());
+				Shoot->ActivateProjectile(GetOwner(), NextProjectileData.MovementSpeed, 
+					NextProjectileData.BounceSpeed, NextProjectileData.GravityChange);
 				
 				CanShoot = 1;
 				
@@ -53,7 +69,7 @@ void UAC_ShootingComponent::ShootNextAvailableProjectile()
 					FTimerManager& WorldTimer = World->GetTimerManager();
 					
 					WorldTimer.SetTimer(
-						TimerHandle,              // The tracking handle
+						CooldownTimerHandle,              // The tracking handle
 						this,                     // The context object running the function
 						&UAC_ShootingComponent::RestartShoot, // The address of your function
 						0.5f,                     // Time in seconds between executions

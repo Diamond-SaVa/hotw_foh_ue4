@@ -7,32 +7,6 @@
 #include "HotW_FoH_UE4/GameData/SG_SaveData.h"
 #include "Kismet/GameplayStatics.h"
 
-/** /
-void AGM_Manager::CheckSaveFiles(UUserWidget* SaveFileWidget)
-{
-	constexpr int32 MaxSaveSlots = 10;
-	TArray<FString> ExistingSaveSlots;
-
-	for (int32 i = 0; i < MaxSaveSlots; i++)
-	{
-		// 1. Construct the slot name
-		FString SlotName = FString::Printf(TEXT("SaveSlot_%d"), i);
-
-		// 2. Check if the file exists on disk
-		if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
-		{
-			ExistingSaveSlots.Add(SlotName);
-			// UE_LOG(LogTemp, Log, TEXT("Found save file: %s"), *SlotName);
-			
-			// Use UserWidget to reflect save file with proper data
-		}
-		else
-		{
-			// Use UserWidget to reflect empty save file
-		}
-	}
-}
-/**/
 
 void AGM_Manager::BeginPlay()
 {

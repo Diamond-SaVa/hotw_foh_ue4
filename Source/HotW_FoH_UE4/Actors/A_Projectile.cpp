@@ -27,7 +27,6 @@ void AA_Projectile::BeginPlay()
 	if (ProjectileMovement != nullptr)
 	{
 		ProjectileMovement->Deactivate();
-		ProjectileMovement->ProjectileGravityScale = 1.0f;
 	}
 }
 
@@ -55,7 +54,7 @@ void AA_Projectile::Tick(float DeltaTime)
 		
 		if (bHitPawn == true)
 		{
-			if (Hit.GetActor() != nullptr)
+			if (IsValid(Hit.GetActor()) == true)
 			{
 				if (IDamageable* Damageable = Cast<IDamageable>(Hit.GetActor()))
 				{
@@ -67,28 +66,47 @@ void AA_Projectile::Tick(float DeltaTime)
 					}
 			
 					DeactivateProjectile();
-					
-					GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, 
-						TEXT("HIT"));
 			
 					return;
 				}
 				
-				if (Hit.ImpactNormal.Z != 0.0)
+				FString Debug = FString::Printf(TEXT("IMPACT : %f, %f, %f"), Hit.ImpactNormal.X, 
+					Hit.ImpactNormal.Y, Hit.ImpactNormal.Z);
+				
+				GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Green, 
+						Debug);
+				
+				
+				if (FMath::IsNearlyZero(Hit.ImpactNormal.Z, 0.01f) == false)
 				{
-					ProjectileMovement->Velocity.Z = 500.0f;
+					if (Hit.ImpactNormal.Z > 0.0)
+					{
+						ProjectileMovement->Velocity.Z = BounceSpeed;
+						return;
+					}
+				
+					if (Hit.ImpactNormal.Z < 0.0)
+					{
+						ProjectileMovement->Velocity.Z = -BounceSpeed;
+						return;
+					}
 				}
 			
-				if (Hit.ImpactNormal.X != 0.0)
+				if (FMath::IsNearlyZero(Hit.ImpactNormal.X, 0.01f) == false)
 				{
-					ProjectileMovement->Velocity.X *= -1.0f;
+					if (Hit.ImpactNormal.X != 0.0)
+					{
+						ProjectileMovement->Velocity.X *= -1.0f;
+						return;
+					}
 				}
 			}
 		}
 	}
 }
 
-void AA_Projectile::ActivateProjectile(AActor* ActorSource)
+void AA_Projectile::ActivateProjectile(AActor* ActorSource, const float MovementSpeedChange,
+	const float BounceSpeedChange, const float GravityChange)
 {
 	if (ActorSource == nullptr || ProjectileMovement == nullptr)
 	{
@@ -103,7 +121,9 @@ void AA_Projectile::ActivateProjectile(AActor* ActorSource)
 	SetActorLocation(ActorLocation);
 	
 	ProjectileMovement->Activate(true);
-	ProjectileMovement->Velocity.X = ActorFwdDirection * MovementSpeed;
+	ProjectileMovement->Velocity.X = ActorFwdDirection * MovementSpeedChange;
+	ProjectileMovement->ProjectileGravityScale = GravityChange;
+	ProjectileMovement->Velocity.Z = -BounceSpeed;
 	
 	ProjectileIsActive = 1;
 	
@@ -113,7 +133,7 @@ void AA_Projectile::ActivateProjectile(AActor* ActorSource)
 		TimerHandle,              // The tracking handle
 		this,                     // The context object running the function
 		&AA_Projectile::DeactivateProjectile, // The address of your function
-		1.1f,                     // Time in seconds between executions
+		3.0f,                     // Time in seconds between executions
 		false                     // True to loop continuously, False to run only once
 	);
 }
