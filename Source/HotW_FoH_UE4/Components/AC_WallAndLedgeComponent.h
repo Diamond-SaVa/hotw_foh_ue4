@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "HotW_FoH_UE4/Enums/ECharacterEnums.h"
+#include "HotW_FoH_UE4/Interfaces/StateSetters.h"
 #include "AC_WallAndLedgeComponent.generated.h"
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class HOTW_FOH_UE4_API UAC_WallAndLedgeComponent : public UActorComponent
+class HOTW_FOH_UE4_API UAC_WallAndLedgeComponent : public UActorComponent, public IStateSetters
 {
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY()
-	class APC_C_Prince* PCOwner;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_WallStart;
@@ -34,8 +34,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
 	float WallRadiusMod;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
-	int32 IsDetectingWallFromTop;
+	EActionState CompActionState = EActionState::EAct_NilState;
+	
+	EMovementState CompMovementState = EMovementState::ECS_GroundState;
+	
+	bool bWallDetectTop;
 	
 
 public:
@@ -51,13 +54,23 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 	
+	/* Pure Virtual Interface Functions */
+	
+	virtual void SetMovementState(const EMovementState NewState) override;
+	
+	virtual void SetActionState(const EActionState NewState) override;
+	
+	/* Empty Pure Virtual Interface Functions  */
+	
+	virtual void SetSpeedState(const ESpeedState NewState) override;
+	
+	virtual void SetBoolGoingUp(const bool IsGoingUp) override;
+	
+	/* Class Functions */
+	
 	void WallDetection();
 	
 	void LedgeDetection();
 	
 	void ResetOnLanded();
-	
-	void LedgeUpAnim();
-	
-	void LedgeDownAnim();
 };

@@ -32,6 +32,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_SwitchAnim;
 	
+	// Animation Montage containing actions possible while Ledge Grabbing
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
+	UAnimMontage* AM_LedgeAction;
+	
 	// Pointer to a Curve to use for Dodge Velocity overtime
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	UCurveFloat* DodgeCurve;
@@ -54,8 +58,6 @@ protected:
 	
 	// ID for specific playable characters. 0 is for the prince. 1 is for the girl.
 	int32 CharacterID = 0;
-	
-	bool bWallDetectTop;
 
 public:
 	// Sets default values for this character's properties
@@ -107,6 +109,10 @@ public:
 	// Character Dodge from AnimStateNotifies or inner calls
 	virtual void DodgeInterface(const float DodgePower, const float DeltaSeconds, const EDirection DirectionEnum) override;
 	
+	virtual void WallSlideStart(UAnimMontage* AM_WallStart) override;
+	
+	virtual void LedgeGrabStart(UAnimMontage* AM_LedgeStart) override;
+	
 	virtual void LedgeJumpInterface() override;
 	
 	virtual void MoveInputInterface(const float Direction) override;
@@ -144,8 +150,6 @@ public:
 	void ActivateCharacter();
 	
 	void DeactivateCharacter();
-
-	FORCEINLINE bool GetWallDetectTop() const { return bWallDetectTop; }
 	
-	FORCEINLINE void SetWallDetectTop(const bool NewDetect) { bWallDetectTop = NewDetect; }
+	void ResetWallLedgeComponentDetection();
 };

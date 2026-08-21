@@ -38,8 +38,7 @@ void APC_C_Prince::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	UWorld* World = GetWorld();
-	if (IsValid(World) == true)
+	if (UWorld* World = GetWorld())
 	{
 		if (APC_Control* PC =  Cast<APC_Control>(World->GetFirstPlayerController()))
 		{
@@ -47,8 +46,7 @@ void APC_C_Prince::BeginPlay()
 		}
 	}
 	
-	UCapsuleComponent* Capsule = GetCapsuleComponent();
-	if (IsValid(Capsule) == true)
+	if (const UCapsuleComponent* Capsule = GetCapsuleComponent())
 	{
 		HalfHeightMemory = Capsule->GetUnscaledCapsuleHalfHeight();
 	}
@@ -122,12 +120,7 @@ void APC_C_Prince::Landed(const FHitResult& Hit)
 	// Call parent Landed event so it can change the MovementSate to the Grounded State.
 	Super::Landed(Hit);
 	
-	if (IsValid(WallSlideComponent) == true)
-	{
-		WallSlideComponent->ResetOnLanded();
-	}
-	
-	SetWallDetectTop(false);
+	ResetWallLedgeComponentDetection();
 	
 	// If player is holding the button stick or D-Pad down, start crouching on landing
 	if (bIsLookingDown == true)
@@ -140,10 +133,9 @@ void APC_C_Prince::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightA
 {
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 	
-	UAnimInstance* AnimBP = GetMesh()->GetAnimInstance();
-	if (IsValid(AnimBP))
+	if (UAnimInstance* AnimBP = GetMesh()->GetAnimInstance())
 	{
-		if (AnimBP->Montage_IsPlaying(AM_Landing))
+		if (AM_Landing != nullptr && AnimBP->Montage_IsPlaying(AM_Landing))
 		{
 			AnimBP->Montage_Stop(AM_Landing->BlendOutTriggerTime, AM_Landing);	
 		}
@@ -163,37 +155,44 @@ void APC_C_Prince::SetMovementState(const EMovementState NewState)
 {
 	Super::SetMovementState(NewState);
 	
-	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (IsValid(MoveComp) == false)
+	if (IsValid(WallSlideComponent) == true)
 	{
-		return;
+		WallSlideComponent->SetMovementState(NewState);
 	}
 	
-	switch (NewState)
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
-	case EMovementState::ECS_WallState:
-		MoveComp->GetPhysicsVolume()->TerminalVelocity = 200.0f;
-		CharacterVelocityInterface(FVector::ZeroVector);
-		break;
-	case EMovementState::ECS_LedgeState:
-		MoveComp->SetMovementMode(MOVE_None);
-		CharacterVelocityInterface(FVector::ZeroVector);
-		break;
-	default:
-		// Return the terminal velocity to normal, as well as the 
-		// component's movement mode if it was set to NONE before.
-		MoveComp->GetPhysicsVolume()->TerminalVelocity = 4000.0f;
-		if (MoveComp->MovementMode == MOVE_None)
+		switch (NewState)
 		{
-			MoveComp->SetMovementMode(MOVE_Falling);
+		case EMovementState::ECS_WallState:
+			MoveComp->GetPhysicsVolume()->TerminalVelocity = 200.0f;
+			CharacterVelocityInterface(FVector::ZeroVector);
+			break;
+		case EMovementState::ECS_LedgeState:
+			MoveComp->SetMovementMode(MOVE_None);
+			CharacterVelocityInterface(FVector::ZeroVector);
+			break;
+		default:
+			// Return the terminal velocity to normal, as well as the 
+			// component's movement mode if it was set to NONE before.
+			MoveComp->GetPhysicsVolume()->TerminalVelocity = 4000.0f;
+			if (MoveComp->MovementMode == MOVE_None)
+			{
+				MoveComp->SetMovementMode(MOVE_Falling);
+			}
+			break;
 		}
-		break;
 	}
 }
 
 void APC_C_Prince::SetActionState(const EActionState NewState)
 {	
 	Super::SetActionState(NewState);
+	
+	if (IsValid(WallSlideComponent) == true)
+	{
+		WallSlideComponent->SetActionState(NewState);
+	}
 	
 	switch (NewState)
 	{
@@ -247,7 +246,7 @@ void APC_C_Prince::JumpStart()
 	
 	UCapsuleComponent* Capsule = GetCapsuleComponent();
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (IsValid(Capsule) == false || IsValid(MoveComp) == false || CoyoteJumpCurrentCount == 1)
+	if (Capsule == nullptr || MoveComp == nullptr || CoyoteJumpCurrentCount == 1)
 	{
 		Super::JumpStart();
 		return;
@@ -284,7 +283,7 @@ void APC_C_Prince::JumpStart()
 
 void APC_C_Prince::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	if (IsValid(Montage) == false)
+	if (Montage == nullptr)
 	{
 		return;
 	}
@@ -299,7 +298,7 @@ void APC_C_Prince::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 
 void APC_C_Prince::DodgeInterface(const float DodgePower, const float DeltaSeconds, const EDirection DirectionEnum)
 {
-	if (IsValid(DodgeCurve) == false)
+	if (DodgeCurve == nullptr)
 	{
 		return;
 	}
@@ -332,17 +331,45 @@ void APC_C_Prince::DodgeInterface(const float DodgePower, const float DeltaSecon
 	CharacterVelocityInterface(DodgeVelocity * DodgeCurveFloat);
 }
 
+void APC_C_Prince::WallSlideStart(UAnimMontage* AM_WallStart)
+{	
+	SetMovementState(EMovementState::ECS_WallState);
+		
+	FString SectionText = "Default";
+	
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		const float UpVelocity = MoveComp->GetLastUpdateVelocity().Z;
+		constexpr float UpVelocityThreshold = 300.0f;
+			
+		if (UpVelocity > UpVelocityThreshold)
+		{
+			SectionText = "Up";	
+		}
+	}
+
+	const FName SectionName = *SectionText;
+		
+	PlayAnimMontage_Safe(AM_WallStart, SectionName);
+}
+
+void APC_C_Prince::LedgeGrabStart(UAnimMontage* AM_LedgeStart)
+{
+	TurnToStickDirection();
+	SetMovementState(EMovementState::ECS_LedgeState);
+	PlayAnimMontage_Safe(AM_LedgeStart);
+	SetActionState(EActionState::EAct_PerfectDodgeState);
+	ResetWallLedgeComponentDetection();
+}
+
 void APC_C_Prince::LedgeJumpInterface()
 {
-	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (IsValid(MoveComp) == false)
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
-		return;
+		SetMovementState(EMovementState::ECS_AirState);
+	
+		MoveComp->Velocity.Z = MoveComp->JumpZVelocity * 1.5f;
 	}
-	
-	SetMovementState(EMovementState::ECS_AirState);
-	
-	MoveComp->Velocity.Z = MoveComp->JumpZVelocity * 1.5f;
 }
 
 
@@ -354,8 +381,7 @@ void APC_C_Prince::MoveInputInterface(const float Direction)
 void APC_C_Prince::CharacterVelocityInterface(const FVector& NewVelocity)
 {
 	// Checks the existence of the Character Movement Component,
-	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (IsValid(MoveComp) == true)
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
 		// and proceeds to modify the velocity of the character. 
 		MoveComp->Velocity = NewVelocity;
@@ -366,26 +392,23 @@ void APC_C_Prince::CharacterVelocityInterface(const EDirection AxisDirection, co
 {
 	// Checks the existence of the Character Movement Component, and if it's not found or valid,
 	// stop processing further code.
-	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (IsValid(MoveComp) == false)
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
-		return;
-	}
-	
-	// Depending on the direction, forces the Velocity of said axis.
-	switch (AxisDirection)
-	{
-	case EDirection::EDI_X:
-		MoveComp->Velocity.X = NewVelocity;
-		break;
-	case EDirection::EDI_Y:
-		MoveComp->Velocity.Y = NewVelocity;
-		break;
-	case EDirection::EDI_Z:
-		MoveComp->Velocity.Z = NewVelocity;
-		break;
-	default:
-		break;
+		// Depending on the direction, forces the Velocity of said axis.
+		switch (AxisDirection)
+		{
+		case EDirection::EDI_X:
+			MoveComp->Velocity.X = NewVelocity;
+			break;
+		case EDirection::EDI_Y:
+			MoveComp->Velocity.Y = NewVelocity;
+			break;
+		case EDirection::EDI_Z:
+			MoveComp->Velocity.Z = NewVelocity;
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -486,17 +509,28 @@ void APC_C_Prince::Attack()
 
 void APC_C_Prince::LedgeUpAnim()
 {
-	if (WallSlideComponent)
+	if (MovementState == EMovementState::ECS_LedgeState && 
+		ActionState == EActionState::EAct_NilState)
 	{
-		WallSlideComponent->LedgeUpAnim();
+		const FString SectionString = "Up";
+		const FName SectionName = FName(*SectionString);
+		PlayAnimMontage_Safe(AM_LedgeAction, SectionName);
+			
+		SetActionState(EActionState::EAct_DodgeState);
+		SetActionState(EActionState::EAct_DodgeState);
 	}
 }
 
 void APC_C_Prince::LedgeDownAnim()
 {
-	if (WallSlideComponent)
+	if (MovementState == EMovementState::ECS_LedgeState && 
+		ActionState == EActionState::EAct_NilState)
 	{
-		WallSlideComponent->LedgeDownAnim();
+		SetActionState(EActionState::EAct_PerfectDodgeState);
+		SetMovementState(EMovementState::ECS_AirState);
+		const FString SectionString = "Down";
+		const FName SectionName = FName(*SectionString);
+		PlayAnimMontage_Safe(AM_LedgeAction, SectionName);
 	}
 }
 
@@ -520,22 +554,20 @@ void APC_C_Prince::TurnToStickDirection()
 	else if (FMath::IsNearlyZero(StickDirection, 0.01f) == true)
 	{
 		// Obtain the Character Movement Component
-		const UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-		if (IsValid(MoveComp) == false)
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
-			return;
+			// and check at which side the character if moving without the influence of the player,
+			const float Direction = MoveComp->GetLastUpdateVelocity().X;
+			// And according to the direction, turn the character's rotation to where it should be facing.
+			if (Direction > Zero)
+			{
+				SetActorRotation(FRotator(Zero, Zero, Zero));
+			} 
+			else if (Direction < Zero)
+			{
+				SetActorRotation(FRotator(Zero, Turn, Zero));
+			} 
 		}
-		// and check at which side the character if moving without the influence of the player,
-		const float Direction = MoveComp->GetLastUpdateVelocity().X;
-		// And according to the direction, turn the character's rotation to where it should be facing.
-		if (Direction > Zero)
-		{
-			SetActorRotation(FRotator(Zero, Zero, Zero));
-		} 
-		else if (Direction < Zero)
-		{
-			SetActorRotation(FRotator(Zero, Turn, Zero));
-		} 
 	}
 }
 
@@ -594,13 +626,7 @@ void APC_C_Prince::DodgeFromAnimation()
 	// If the character was in a state of Wall Sliding, then turn around and proceed to dash.
 	if (MovementState == EMovementState::ECS_WallState || MovementState == EMovementState::ECS_LedgeState)
 	{
-		UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-		if (IsValid(MoveComp) == false)
-		{
-			return;
-		}
-		
-		SetWallDetectTop(false);
+		ResetWallLedgeComponentDetection();
 		
 		// Change back the MovementState to AirState so the character is not stuck in the WallState
 		SetMovementState(EMovementState::ECS_AirState);
@@ -688,5 +714,13 @@ void APC_C_Prince::DeactivateCharacter()
 	StickDirection = 0.0f;
 	
 	SetSpeedState(ESpeedState::ESP_Stop);
+}
+
+void APC_C_Prince::ResetWallLedgeComponentDetection()
+{
+	if (IsValid(WallSlideComponent) == true)
+	{
+		WallSlideComponent->ResetOnLanded();
+	}
 }
 

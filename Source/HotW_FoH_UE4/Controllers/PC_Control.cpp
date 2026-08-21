@@ -197,7 +197,7 @@ void APC_Control::ActionStopWallSliding()
 		ThePC.Get()->SetMovementState(EMovementState::ECS_AirState);
 	}
 	
-	ThePC.Get()->SetWallDetectTop(false);
+	ThePC.Get()->ResetWallLedgeComponentDetection();
 }
 
 void APC_Control::ActionInteractStart()
