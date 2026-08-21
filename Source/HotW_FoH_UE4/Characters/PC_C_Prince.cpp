@@ -6,7 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PhysicsVolume.h"
-#include "HotW_FoH_UE4/Components/AC_WallSlideComponent.h"
+#include "HotW_FoH_UE4/Components/AC_WallAndLedgeComponent.h"
 #include "HotW_FoH_UE4/Controllers/PC_Control.h"
 #include "HotW_FoH_UE4/Interfaces/Interactions.h"
 
@@ -30,7 +30,7 @@ APC_C_Prince::APC_C_Prince()
 		bUseControllerRotationYaw = false;
 	}
 	
-	WallSlideComponent = CreateDefaultSubobject<UAC_WallSlideComponent>(FName("WallSlideSkillComponent"));
+	WallSlideComponent = CreateDefaultSubobject<UAC_WallAndLedgeComponent>(FName("WallSlideSkillComponent"));
 }
 
 // Called when the game starts or when spawned

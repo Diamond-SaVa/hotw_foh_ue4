@@ -1,7 +1,7 @@
 ﻿// © 2026 Ricardo Sánchez Villegas. All rights reserved. 
 
 
-#include "AC_WallSlideComponent.h"
+#include "AC_WallAndLedgeComponent.h"
 
 #include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
@@ -10,7 +10,7 @@
 
 
 // Sets default values for this component's properties
-UAC_WallSlideComponent::UAC_WallSlideComponent()
+UAC_WallAndLedgeComponent::UAC_WallAndLedgeComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -21,7 +21,7 @@ UAC_WallSlideComponent::UAC_WallSlideComponent()
 
 
 // Called when the game starts
-void UAC_WallSlideComponent::BeginPlay()
+void UAC_WallAndLedgeComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -47,7 +47,7 @@ void UAC_WallSlideComponent::BeginPlay()
 
 
 // Called every frame
-void UAC_WallSlideComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+void UAC_WallAndLedgeComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                            FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -58,7 +58,7 @@ void UAC_WallSlideComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	LedgeDetection();
 }
 
-void UAC_WallSlideComponent::WallDetection()
+void UAC_WallAndLedgeComponent::WallDetection()
 {
 	// If the character is doing an action, it's already in the MovementState of LedgeState, or it's not in the air, 
 	// do not process further code in this function.
@@ -182,7 +182,7 @@ void UAC_WallSlideComponent::WallDetection()
 		DepthPriority, Thickness);
 }
 
-void UAC_WallSlideComponent::LedgeDetection()
+void UAC_WallAndLedgeComponent::LedgeDetection()
 {
 	// When the too side of the trace detects a wall, proceed to check if the character can be ledged
 	if (PCOwner == nullptr || IsDetectingWallFromTop == 0 || 
@@ -254,12 +254,12 @@ void UAC_WallSlideComponent::LedgeDetection()
 	}
 }
 
-void UAC_WallSlideComponent::ResetOnLanded()
+void UAC_WallAndLedgeComponent::ResetOnLanded()
 {
 	IsDetectingWallFromTop = 0;
 }
 
-void UAC_WallSlideComponent::LedgeUpAnim()
+void UAC_WallAndLedgeComponent::LedgeUpAnim()
 {
 	if (PCOwner->GetMovementState() == EMovementState::ECS_LedgeState && 
 		PCOwner->GetActionState() == EActionState::EAct_NilState)
@@ -273,7 +273,7 @@ void UAC_WallSlideComponent::LedgeUpAnim()
 	}
 }
 
-void UAC_WallSlideComponent::LedgeDownAnim()
+void UAC_WallAndLedgeComponent::LedgeDownAnim()
 {
 	if (PCOwner->GetMovementState() == EMovementState::ECS_LedgeState && 
 		PCOwner->GetActionState() == EActionState::EAct_NilState)

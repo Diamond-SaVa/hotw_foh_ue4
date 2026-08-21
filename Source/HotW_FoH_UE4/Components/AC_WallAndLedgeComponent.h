@@ -4,18 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "HotW_FoH_UE4/Characters/PC_C_Prince.h"
-#include "AC_WallSlideComponent.generated.h"
+#include "AC_WallAndLedgeComponent.generated.h"
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class HOTW_FOH_UE4_API UAC_WallSlideComponent : public UActorComponent
+class HOTW_FOH_UE4_API UAC_WallAndLedgeComponent : public UActorComponent
 {
 	GENERATED_BODY()
 	
 protected:
 	UPROPERTY()
-	APC_C_Prince* PCOwner;
+	class APC_C_Prince* PCOwner;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_WallStart;
@@ -41,7 +40,7 @@ protected:
 
 public:
 	// Sets default values for this component's properties
-	UAC_WallSlideComponent();
+	UAC_WallAndLedgeComponent();
 
 protected:
 	// Called when the game starts

@@ -18,7 +18,7 @@ protected:
 	FTimerHandle CoyoteTimerHandle;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Movement Data")
-	class UAC_WallSlideComponent* WallSlideComponent;
+	class UAC_WallAndLedgeComponent* WallSlideComponent;
 	
 	// Animation for Interactions
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")

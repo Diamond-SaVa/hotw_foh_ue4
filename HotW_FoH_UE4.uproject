@@ -119,6 +119,10 @@
 				"Win64",
 				"Android"
 			]
+		},
+		{
+			"Name": "GameplayAbilities",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

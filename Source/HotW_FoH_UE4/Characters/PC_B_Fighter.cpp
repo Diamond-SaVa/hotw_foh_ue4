@@ -5,7 +5,6 @@
 
 
 #include "HotW_FoH_UE4/Components/AC_Stats.h"
-#include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -13,7 +12,7 @@
 APC_B_Fighter::APC_B_Fighter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 // Called when the game starts or when spawned
