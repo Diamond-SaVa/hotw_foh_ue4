@@ -3,6 +3,7 @@
 
 #include "PC_A_Base.h"
 
+#include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PhysicsVolume.h"
@@ -17,14 +18,12 @@ APC_A_Base::APC_A_Base()
 	constexpr ECollisionChannel Channel = ECC_Camera;
 	constexpr ECollisionResponse Response = ECR_Ignore;
 	
-	UCapsuleComponent* CapComp = GetCapsuleComponent();
-	if (CapComp != nullptr)
+	if (UCapsuleComponent* CapComp = GetCapsuleComponent())
 	{
 		CapComp->SetCollisionResponseToChannel(Channel, Response);
 	}
 	
-	USkeletalMeshComponent* SMComp = GetMesh();
-	if (SMComp != nullptr)
+	if (USkeletalMeshComponent* SMComp = GetMesh())
 	{
 		SMComp->SetCollisionResponseToChannel(Channel, Response);
 	}
@@ -95,10 +94,7 @@ void APC_A_Base::NotifyJumpApex()
 {
 	Super::NotifyJumpApex();
 	
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("APEX"));
-	
-	UAnimInstance* AnimBP = GetMesh()->GetAnimInstance();
-	if (IsValid(AnimBP))
+	if (UAnimInstance* AnimBP = GetMesh()->GetAnimInstance())
 	{
 		if (AnimBP->Montage_IsPlaying(AM_Jump))
 		{
@@ -125,8 +121,7 @@ void APC_A_Base::Landed(const FHitResult& Hit)
 	{
 		SlotName = FName("Default");
 		
-		UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-		if (IsValid(MoveComp) == true)
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 		{
 			MoveComp->StopMovementImmediately();
 		}
@@ -307,11 +302,14 @@ void APC_A_Base::PlayAnimMontage_Safe(UAnimMontage* AnimMontage, const FName Sec
 		return;
 	}
 	
+	PrintDebug(SectionName.ToString());
+	
 	PlayAnimMontage(AnimMontage, InPlayRate, SectionName);
 }
 
 void APC_A_Base::LineTraceResponse(const FVector& Direction, const float Distance, FHitResult& Hit, 
-                                   const ECollisionChannel CollisionChannel, const FCollisionQueryParams& QueryParams, bool& bResult) const
+                                   const ECollisionChannel CollisionChannel, const FCollisionQueryParams& QueryParams,
+                                   bool& bResult) const
 {
 	// Sets the start and end location according to the given direction
 	const FVector StartLocation = GetActorLocation();
@@ -319,17 +317,22 @@ void APC_A_Base::LineTraceResponse(const FVector& Direction, const float Distanc
 	
 	// Returns if the trace managed to hit something
 	bResult = GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, EndLocation, CollisionChannel, QueryParams);
+	
+	FColor Color = FColor::Red;
+	
+	if (bResult)
+		Color = FColor::Green;
+	
+	DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, true, 
+		5.0f, 1, 5.0f);
 }
 
 void APC_A_Base::SetTerminalVelocity(const float NewTerminal)
 {
-	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (IsValid(MoveComp) == false)
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
-		return;
+		MoveComp->GetPhysicsVolume()->TerminalVelocity = NewTerminal;
 	}
-	
-	MoveComp->GetPhysicsVolume()->TerminalVelocity = NewTerminal;
 }
 
 void APC_A_Base::StopTerminalVelocity()
@@ -339,5 +342,5 @@ void APC_A_Base::StopTerminalVelocity()
 
 void APC_A_Base::PrintDebug(const FString& Message, const float PrintTime)
 {
-	GEngine->AddOnScreenDebugMessage(-1, PrintTime, FColor::Black, Message);
+	GEngine->AddOnScreenDebugMessage(-1, PrintTime, FColor::Cyan, Message);
 }

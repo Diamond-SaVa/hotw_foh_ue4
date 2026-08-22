@@ -76,7 +76,6 @@ void APC_C_Prince::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 P
 	if (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_NavWalking)
 	{
 		CoyoteJumpCurrentCount = 0;
-		PrintDebug("RESET COYOTE");
 		
 		if (ActionState == EActionState::EAct_AttackState || ActionState == EActionState::EAct_SideAttackState)
 		{
@@ -96,15 +95,11 @@ void APC_C_Prince::OnWalkingOffLedge_Implementation(const FVector& PreviousFloor
 	Super::OnWalkingOffLedge_Implementation(PreviousFloorImpactNormal, PreviousFloorContactNormal, 
 		PreviousLocation, TimeDelta);
 	
-	PrintDebug("LedgeOff");
-	
 	FTimerManager& WorldTimer = GetWorldTimerManager();
 	if (WorldTimer.IsTimerActive(CoyoteTimerHandle) == true)
 	{
 		return;
 	}
-	
-	PrintDebug("Coyote Timer Start");
 	
 	WorldTimer.SetTimer(
 		CoyoteTimerHandle,              // The tracking handle
@@ -267,7 +262,6 @@ void APC_C_Prince::JumpStart()
 		LaunchCharacter(FVector::UpVector * CoyoteJumpSpeed, false, true);
 		SetActionState(EActionState::EAct_NilState);
 		CoyoteJumpCurrentCount = 1;
-		PrintDebug("Coyote JUMPED");
 		
 		FTimerManager& WorldTimer = GetWorldTimerManager();
 		if (WorldTimer.IsTimerActive(CoyoteTimerHandle))
@@ -664,8 +658,6 @@ void APC_C_Prince::Interact()
 void APC_C_Prince::CoyoteJumpDisable()
 {
 	CoyoteJumpCurrentCount = 1;
-	
-	PrintDebug("CoyoteJumpDisable");
 }
 
 void APC_C_Prince::DeactivateFromAnim()

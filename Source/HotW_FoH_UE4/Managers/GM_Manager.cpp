@@ -33,7 +33,7 @@ void AGM_Manager::SetActiveCharacter(const int32 NewSlot, AActor* NewCharacter)
 void AGM_Manager::LoadLevel(TSoftObjectPtr<UWorld> NewLevel)
 {
 	UWorld* TheWorld = GetWorld();
-	if (CurrentLevel.IsNull() == true || IsValid(TheWorld) == false)
+	if (CurrentLevel.IsNull() == true || TheWorld == nullptr)
 	{
 		return;
 	}

@@ -82,8 +82,7 @@ void UAC_WallAndLedgeComponent::WallDetection()
 {
 	// If the character is doing an action, it's already in the MovementState of LedgeState, or it's not in the air, 
 	// do not process further code in this function.
-	if (CompActionState != EActionState::EAct_NilState || 
-		CompMovementState != EMovementState::ECS_AirState)
+	if (CompActionState != EActionState::EAct_NilState || CompMovementState != EMovementState::ECS_LedgeState)
 	{
 		return;
 	}
@@ -138,6 +137,12 @@ void UAC_WallAndLedgeComponent::WallDetection()
 	
 	// Stop further calculations if the top is not hitting any static surface
 	if (bWallDetectTop == false)
+	{
+		SetMovementState(EMovementState::ECS_AirState);
+		return;
+	}
+	
+	if (CompMovementState != EMovementState::ECS_AirState)
 	{
 		return;
 	}

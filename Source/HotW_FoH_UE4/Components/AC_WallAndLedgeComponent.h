@@ -22,9 +22,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_LedgeStart;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
-	UAnimMontage* AM_LedgeAction;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
 	float WallTraceHeightModifier = 0.75f;
 	

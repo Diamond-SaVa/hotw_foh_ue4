@@ -16,7 +16,7 @@ APC_Control::APC_Control()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	PCArray.Reserve(2);
+	PCharacterArray.Reserve(2);
 }
 
 // Called when the game starts or when spawned
@@ -113,17 +113,15 @@ void APC_Control::CharacterSetUpFromBeginPlay(APC_C_Prince* PlayableCharacter, c
 		return;
 	}
 	
-	PCArray[CharacterID] = PlayableCharacter;
+	PCharacterArray[CharacterID] = PlayableCharacter;
 	
 	if (CharacterID != CurrentCharacterSlot)
 	{
-		PCArray[CharacterID]->DeactivateCharacter();
+		PCharacterArray[CharacterID]->DeactivateCharacter();
 	}
 	else
 	{
-		ThePC = PCArray[CharacterID];
-		
-		ThePC->ActivateCharacter();
+		PCharacterArray[CharacterID]->ActivateCharacter();
 		
 		SendCharacterToManager();
 	}
@@ -136,164 +134,164 @@ void APC_Control::ReenableSwitch()
 
 void APC_Control::ActionAttack()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->Attack();
+	PCharacterArray[CurrentCharacterSlot].Get()->Attack();
 }
 
 void APC_Control::ActionMovement(const FInputActionValue& Value)
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, "FAILED AT CAST");
 		return;
 	}
 	
-	ThePC.Get()->Move(Value.Get<float>());
+	PCharacterArray[CurrentCharacterSlot].Get()->Move(Value.Get<float>());
 }
 
 void APC_Control::ActionMovementStop()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->MoveEnd();
+	PCharacterArray[CurrentCharacterSlot].Get()->MoveEnd();
 }
 
 void APC_Control::ActionJumpStart()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->JumpStart();
+	PCharacterArray[CurrentCharacterSlot].Get()->JumpStart();
 }
 
 void APC_Control::ActionJumpEnd()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->JumpEnd();
+	PCharacterArray[CurrentCharacterSlot].Get()->JumpEnd();
 }
 
 void APC_Control::ActionStopWallSliding()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	if (ThePC.Get()->GetMovementState() == EMovementState::ECS_WallState)
+	if (PCharacterArray[CurrentCharacterSlot].Get()->GetMovementState() == EMovementState::ECS_WallState)
 	{
-		ThePC.Get()->SetMovementState(EMovementState::ECS_AirState);
+		PCharacterArray[CurrentCharacterSlot].Get()->SetMovementState(EMovementState::ECS_AirState);
 	}
 	
-	ThePC.Get()->ResetWallLedgeComponentDetection();
+	PCharacterArray[CurrentCharacterSlot].Get()->ResetWallLedgeComponentDetection();
 }
 
 void APC_Control::ActionInteractStart()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->Interact();
+	PCharacterArray[CurrentCharacterSlot].Get()->Interact();
 }
 
 void APC_Control::ActionPressUpStart()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->SetIsLookingUp(true);
+	PCharacterArray[CurrentCharacterSlot].Get()->SetIsLookingUp(true);
 	
-	ThePC.Get()->LedgeUpAnim();
+	PCharacterArray[CurrentCharacterSlot].Get()->LedgeUpAnim();
 	
-	ThePC.Get()->SetIsLookingDown(false);
+	PCharacterArray[CurrentCharacterSlot].Get()->SetIsLookingDown(false);
 	
-	ThePC.Get()->UnCrouch();
+	PCharacterArray[CurrentCharacterSlot].Get()->UnCrouch();
 }
 
 void APC_Control::ActionPressUpEnd()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->SetIsLookingUp(false);
+	PCharacterArray[CurrentCharacterSlot].Get()->SetIsLookingUp(false);
 }
 
 void APC_Control::ActionPressDownStart()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, "DOWN CALLED");
 	
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->SetIsLookingDown(true);
+	PCharacterArray[CurrentCharacterSlot].Get()->SetIsLookingDown(true);
 	
-	if (ThePC.Get()->GetMovementState() == EMovementState::ECS_LedgeState && 
-		ThePC.Get()->GetActionState() == EActionState::EAct_NilState)
+	if (PCharacterArray[CurrentCharacterSlot].Get()->GetMovementState() == EMovementState::ECS_LedgeState && 
+		PCharacterArray[CurrentCharacterSlot].Get()->GetActionState() == EActionState::EAct_NilState)
 	{
-		ThePC.Get()->LedgeDownAnim();
+		PCharacterArray[CurrentCharacterSlot].Get()->LedgeDownAnim();
 	}
 	
-	ThePC.Get()->CrouchStart();
+	PCharacterArray[CurrentCharacterSlot].Get()->CrouchStart();
 	
-	ThePC.Get()->SetIsLookingUp(false);
+	PCharacterArray[CurrentCharacterSlot].Get()->SetIsLookingUp(false);
 }
 
 void APC_Control::ActionPressDownEnd()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->SetIsLookingDown(false);
+	PCharacterArray[CurrentCharacterSlot].Get()->SetIsLookingDown(false);
 	
-	ThePC.Get()->CrouchEnd();
+	PCharacterArray[CurrentCharacterSlot].Get()->CrouchEnd();
 }
 
 void APC_Control::ActionDodgeStart()
 {
-	if (ThePC.IsValid() == false)
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
 	{
 		return;
 	}
 	
-	ThePC.Get()->DodgeFromAnimation();
+	PCharacterArray[CurrentCharacterSlot].Get()->DodgeFromAnimation();
 }
 
 void APC_Control::ActionSwitchCharacter()
 {
-	if (CanSwitchCharacter == 1 || ThePC.IsValid() == false	|| 
-		ThePC.Get()->GetMovementState() != EMovementState::ECS_GroundState || 
-		ThePC.Get()->GetActionState() != EActionState::EAct_NilState)
+	if (CanSwitchCharacter == 1 || PCharacterArray[CurrentCharacterSlot].IsValid() == false	|| 
+		PCharacterArray[CurrentCharacterSlot].Get()->GetMovementState() != EMovementState::ECS_GroundState || 
+		PCharacterArray[CurrentCharacterSlot].Get()->GetActionState() != EActionState::EAct_NilState)
 	{
 		return;
 	}
 	
-	const FVector Location = ThePC.Get()->GetActorLocation();
+	const FVector Location = PCharacterArray[CurrentCharacterSlot].Get()->GetActorLocation();
 	
-	const FRotator Rotation = ThePC.Get()->GetActorRotation();
+	const FRotator Rotation = PCharacterArray[CurrentCharacterSlot].Get()->GetActorRotation();
 	
-	ThePC.Get()->DeactivateCharacter();
+	PCharacterArray[CurrentCharacterSlot].Get()->DeactivateCharacter();
 	
 	if (CurrentCharacterSlot == 0)
 	{
@@ -304,13 +302,11 @@ void APC_Control::ActionSwitchCharacter()
 		CurrentCharacterSlot = 0;
 	}
 	
-	ThePC = PCArray[CurrentCharacterSlot];
+	PCharacterArray[CurrentCharacterSlot].Get()->SetActorLocation(Location);
 	
-	ThePC.Get()->SetActorLocation(Location);
+	PCharacterArray[CurrentCharacterSlot].Get()->SetActorRotation(Rotation);
 	
-	ThePC.Get()->SetActorRotation(Rotation);
-	
-	ThePC.Get()->ActivateCharacter();
+	PCharacterArray[CurrentCharacterSlot].Get()->ActivateCharacter();
 	
 	SendCharacterToManager();
 	
@@ -340,6 +336,6 @@ void APC_Control::SendCharacterToManager()
 	AGameModeBase* GM = TheWorld->GetAuthGameMode();
 	if (IManager* Manager = Cast<IManager>(GM))
 	{
-		Manager->SetActiveCharacter(CurrentCharacterSlot, ThePC.Get());
+		Manager->SetActiveCharacter(CurrentCharacterSlot, PCharacterArray[CurrentCharacterSlot].Get());
 	}
 }

@@ -17,11 +17,8 @@ class HOTW_FOH_UE4_API APC_Control : public APlayerController
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Load Data")
-	TArray<APC_C_Prince*> PCArray;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Load Data")
-	TWeakObjectPtr<APC_C_Prince> ThePC;
+	UPROPERTY(EditAnywhere, Category = "Character Load Data")
+	TArray<TWeakObjectPtr<APC_C_Prince>> PCharacterArray;
 	
 	// Input Action for Movement
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
