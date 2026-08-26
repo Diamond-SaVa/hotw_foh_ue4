@@ -26,9 +26,9 @@ public:
 	
 	virtual void DodgeInterface(const float DodgePower, const float DeltaSeconds, const EDirection DirectionEnum) = 0;
 	
-	virtual void WallSlideStart(UAnimMontage* AM_WallStart) = 0;
+	virtual void WallSlideStart() = 0;
 	
-	virtual void LedgeGrabStart(UAnimMontage* AM_LedgeStart) = 0;
+	virtual void LedgeGrabStart() = 0;
 	
 	virtual void LedgeJumpInterface() = 0;
 	

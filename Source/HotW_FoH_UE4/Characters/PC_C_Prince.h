@@ -32,6 +32,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_SwitchAnim;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
+	UAnimMontage* AM_WallStart;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
+	UAnimMontage* AM_LedgeStart;
+	
 	// Animation Montage containing actions possible while Ledge Grabbing
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_LedgeAction;
@@ -109,9 +115,9 @@ public:
 	// Character Dodge from AnimStateNotifies or inner calls
 	virtual void DodgeInterface(const float DodgePower, const float DeltaSeconds, const EDirection DirectionEnum) override;
 	
-	virtual void WallSlideStart(UAnimMontage* AM_WallStart) override;
+	virtual void WallSlideStart() override;
 	
-	virtual void LedgeGrabStart(UAnimMontage* AM_LedgeStart) override;
+	virtual void LedgeGrabStart() override;
 	
 	virtual void LedgeJumpInterface() override;
 	

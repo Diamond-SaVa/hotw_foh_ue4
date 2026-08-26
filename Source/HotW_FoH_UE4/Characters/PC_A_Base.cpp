@@ -304,6 +304,17 @@ void APC_A_Base::PlayAnimMontage_Safe(UAnimMontage* AnimMontage, const FName Sec
 	
 	PrintDebug(SectionName.ToString());
 	
+	FString DebugText = "NO ANIM BP!?";
+	
+	if (AnimMontage != nullptr)
+	{
+		DebugText = FString::Printf(TEXT("%s is attempting to play montage: %s"),
+			*GetName(),
+			*AnimMontage->GetName());
+	}
+	
+	PrintDebug(DebugText);
+	
 	PlayAnimMontage(AnimMontage, InPlayRate, SectionName);
 }
 

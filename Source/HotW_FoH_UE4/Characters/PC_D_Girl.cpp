@@ -95,6 +95,16 @@ void APC_D_Girl::Attack()
 	ShootingComponent->ShootNextAvailableProjectile();
 }
 
+void APC_D_Girl::LedgeGrabStart()
+{
+	Super::LedgeGrabStart();
+}
+
+void APC_D_Girl::WallSlideStart()
+{
+	Super::WallSlideStart();
+}
+
 void APC_D_Girl::WallJumpAnim()
 {
 	if (ActionState != EActionState::EAct_NilState && MovementState != EMovementState::ECS_WallState)

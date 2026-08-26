@@ -27,6 +27,9 @@ void UAC_WallAndLedgeComponent::BeginPlay()
 
 	// ...
 	
+	// Start the life cyicle with Tick disabled
+	SetComponentTickEnabled(false);
+	
 	ACharacter* PCOwner = Cast<ACharacter>(GetOwner());
 	
 	if (PCOwner == nullptr)
@@ -61,6 +64,18 @@ void UAC_WallAndLedgeComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 void UAC_WallAndLedgeComponent::SetMovementState(const EMovementState NewState)
 {
 	CompMovementState = NewState;
+	
+	switch (NewState)
+	{
+	case EMovementState::ECS_AirState:
+	case EMovementState::ECS_WallState:
+		SetComponentTickEnabled(true);
+		break;
+	case EMovementState::ECS_LedgeState:
+	default:
+		SetComponentTickEnabled(false);
+		break;
+	}
 }
 
 void UAC_WallAndLedgeComponent::SetActionState(const EActionState NewState)
@@ -80,12 +95,14 @@ void UAC_WallAndLedgeComponent::SetBoolGoingUp(const bool IsGoingUp)
 
 void UAC_WallAndLedgeComponent::WallDetection()
 {
+	/**/
 	// If the character is doing an action, it's already in the MovementState of LedgeState, or it's not in the air, 
 	// do not process further code in this function.
-	if (CompActionState != EActionState::EAct_NilState || CompMovementState != EMovementState::ECS_LedgeState)
+	if (CompActionState != EActionState::EAct_NilState || CompMovementState != EMovementState::ECS_AirState)
 	{
 		return;
 	}
+	/**/
 	
 	// Must also work only if the World and the Owner of the Component exist
 	AActor* PCOwner = Cast<AActor>(GetOwner());
@@ -135,18 +152,6 @@ void UAC_WallAndLedgeComponent::WallDetection()
 	DrawDebugLine(World, WallTraceTopStart, WallTraceTopEnd, WallTraceColor, bPersistentLines, LifeTime,
 		DepthPriority, Thickness);
 	
-	// Stop further calculations if the top is not hitting any static surface
-	if (bWallDetectTop == false)
-	{
-		SetMovementState(EMovementState::ECS_AirState);
-		return;
-	}
-	
-	if (CompMovementState != EMovementState::ECS_AirState)
-	{
-		return;
-	}
-	
 	// Take the already worked out calculation from the top FVector for the bottom FVectors
 	FVector WallTraceBotStart = WallTraceTopStart;
 	WallTraceBotStart.Z -= WallHalfHeightMod * 2.0f;
@@ -157,15 +162,12 @@ void UAC_WallAndLedgeComponent::WallDetection()
 	const bool bWallDetectBot = World->LineTraceSingleByChannel(Hit, WallTraceBotStart, WallTraceBotEnd,
 		WallTraceChannel, CollisionParams);;
 	
-	// and then apply both to the final result
-	const bool bWallDetect = bWallDetectTop && bWallDetectBot;
-	
 	// But if a Wall is detected, sets the MovementState to WallState through its proper function
-	if (bWallDetect == true)
+	if (bWallDetectTop == true && bWallDetectBot == true)
 	{
 		if (IMovement* Movement = Cast<IMovement>(PCOwner))
 		{
-			Movement->WallSlideStart(AM_WallStart);
+			Movement->WallSlideStart();
 		}
 		
 		return;
@@ -178,8 +180,8 @@ void UAC_WallAndLedgeComponent::WallDetection()
 void UAC_WallAndLedgeComponent::LedgeDetection()
 {
 	// When the too side of the trace detects a wall, proceed to check if the character can be ledged
-	if (bWallDetectTop == false ||	CompMovementState == EMovementState::ECS_LedgeState || 
-		CompActionState != EActionState::EAct_NilState)
+	if (bWallDetectTop == false || CompActionState != EActionState::EAct_NilState || 
+		CompActionState == EActionState::EAct_WallJumpState)
 	{
 		return;
 	}
@@ -187,8 +189,8 @@ void UAC_WallAndLedgeComponent::LedgeDetection()
 	// Must also work only if the World and the Capsule Component of the character exists
 	UWorld* World = GetWorld();
 	AActor* PCOwner = GetOwner();
-	// and also only if the character is in the air
-	if (World == nullptr || PCOwner == nullptr)
+	if (World == nullptr || PCOwner == nullptr || 
+		(CompMovementState == EMovementState::ECS_WallState && PCOwner->GetVelocity().Z < 0.0f))
 	{
 		return;
 	}
@@ -239,7 +241,8 @@ void UAC_WallAndLedgeComponent::LedgeDetection()
 	{
 		if (IMovement* Movement = Cast<IMovement>(PCOwner))
 		{
-			Movement->LedgeGrabStart(AM_LedgeStart);
+			Movement->LedgeGrabStart();
+			bWallDetectTop = false;
 		}
 	}
 }

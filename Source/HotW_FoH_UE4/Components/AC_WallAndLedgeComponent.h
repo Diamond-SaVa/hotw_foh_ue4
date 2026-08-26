@@ -15,13 +15,6 @@ class HOTW_FOH_UE4_API UAC_WallAndLedgeComponent : public UActorComponent, publi
 	GENERATED_BODY()
 	
 protected:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
-	UAnimMontage* AM_WallStart;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
-	UAnimMontage* AM_LedgeStart;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
 	float WallTraceHeightModifier = 0.75f;
 	
@@ -31,12 +24,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
 	float WallRadiusMod;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
 	EActionState CompActionState = EActionState::EAct_NilState;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
 	EMovementState CompMovementState = EMovementState::ECS_GroundState;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Wall Trace Modifiers")
 	bool bWallDetectTop;
-	
 
 public:
 	// Sets default values for this component's properties

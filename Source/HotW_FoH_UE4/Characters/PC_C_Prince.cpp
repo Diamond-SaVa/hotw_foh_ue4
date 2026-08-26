@@ -325,7 +325,7 @@ void APC_C_Prince::DodgeInterface(const float DodgePower, const float DeltaSecon
 	CharacterVelocityInterface(DodgeVelocity * DodgeCurveFloat);
 }
 
-void APC_C_Prince::WallSlideStart(UAnimMontage* AM_WallStart)
+void APC_C_Prince::WallSlideStart()
 {	
 	SetMovementState(EMovementState::ECS_WallState);
 		
@@ -343,11 +343,11 @@ void APC_C_Prince::WallSlideStart(UAnimMontage* AM_WallStart)
 	}
 
 	const FName SectionName = *SectionText;
-		
+	
 	PlayAnimMontage_Safe(AM_WallStart, SectionName);
 }
 
-void APC_C_Prince::LedgeGrabStart(UAnimMontage* AM_LedgeStart)
+void APC_C_Prince::LedgeGrabStart()
 {
 	TurnToStickDirection();
 	SetMovementState(EMovementState::ECS_LedgeState);

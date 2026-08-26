@@ -34,6 +34,10 @@ public:
 	
 	virtual void Attack() override;
 	
+	virtual void LedgeGrabStart() override;
+	
+	virtual void WallSlideStart() override;
+	
 	/* Actions to Bind */
 	
 	/* Functions Unique to Girl Character */
