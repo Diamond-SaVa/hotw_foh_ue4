@@ -100,6 +100,26 @@ void UAC_WallAndLedgeComponent::WallDetection()
 	// do not process further code in this function.
 	if (CompActionState != EActionState::EAct_NilState || CompMovementState != EMovementState::ECS_AirState)
 	{
+		if (CompMovementState == EMovementState::ECS_WallState)
+		{
+			AActor* PCOwner = Cast<AActor>(GetOwner());
+			UWorld* World = GetWorld();
+			if (World == nullptr || PCOwner == nullptr)
+			{
+				return;
+			}
+			bool bStillOnWall = true;
+			TraceFunction(PCOwner, World, false, bStillOnWall);
+			
+			if (bStillOnWall == false)
+			{
+				if (IStateSetters* OwnerSetters = Cast<IStateSetters>(PCOwner))
+				{
+					OwnerSetters->SetMovementState(EMovementState::ECS_AirState);
+				}
+			}
+		}
+		
 		return;
 	}
 	/**/
@@ -112,55 +132,11 @@ void UAC_WallAndLedgeComponent::WallDetection()
 		return;
 	}
 	
-	// Creates the FHitResult variable
-	FHitResult Hit;
+	TraceFunction(PCOwner, World, true, bWallDetectTop);
 	
-	// Makes a constant expression for the Collision Channel to detect
-	constexpr ECollisionChannel WallTraceChannel = ECollisionChannel::ECC_WorldStatic;
+	bool bWallDetectBot = false;
 	
-	// Makes the Collision Parameters in which the trace will ignore the character
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(PCOwner);
-	
-	// Constant Expressions and Constant Floats
-	constexpr float WallDistanceEnd = 1.0f;
-	const float CharacterDirection = FMath::RoundToFloat(PCOwner->GetActorForwardVector().X);
-	
-	/* Set and Modify Vectors */
-	
-	// Set the Top Trace starting position with the capsule's radius as a starting point
-	FVector WallTraceTopStart = PCOwner->GetActorLocation();
-	WallTraceTopStart.X += WallRadiusMod * CharacterDirection;
-	WallTraceTopStart.Z += WallHalfHeightMod;
-	
-	// Create the End Location for the Top and Bottom Traces and modify their X variable according to the Stick direction 
-	FVector WallTraceTopEnd = WallTraceTopStart;
-	WallTraceTopEnd.X += WallDistanceEnd * CharacterDirection;
-	
-	// Set the top wall detection according to the Trace's Hit
-	bWallDetectTop = World->LineTraceSingleByChannel(Hit, WallTraceTopStart, WallTraceTopEnd,
-		WallTraceChannel, CollisionParams);
-	
-	// Settings for the Debug Drawing Line
-	const FColor WallTraceColor = FColor::Red;
-	
-	constexpr bool bPersistentLines = false;
-	constexpr float LifeTime = -1.0f;
-	constexpr uint8 DepthPriority = 1;
-	constexpr float Thickness = 10.0f;
-	
-	DrawDebugLine(World, WallTraceTopStart, WallTraceTopEnd, WallTraceColor, bPersistentLines, LifeTime,
-		DepthPriority, Thickness);
-	
-	// Take the already worked out calculation from the top FVector for the bottom FVectors
-	FVector WallTraceBotStart = WallTraceTopStart;
-	WallTraceBotStart.Z -= WallHalfHeightMod * 2.0f;
-	
-	FVector WallTraceBotEnd = WallTraceBotStart;
-	WallTraceBotEnd.X += WallDistanceEnd * CharacterDirection;
-	
-	const bool bWallDetectBot = World->LineTraceSingleByChannel(Hit, WallTraceBotStart, WallTraceBotEnd,
-		WallTraceChannel, CollisionParams);;
+	TraceFunction(PCOwner, World, false, bWallDetectBot);
 	
 	// But if a Wall is detected, sets the MovementState to WallState through its proper function
 	if (bWallDetectTop == true && bWallDetectBot == true)
@@ -169,12 +145,7 @@ void UAC_WallAndLedgeComponent::WallDetection()
 		{
 			Movement->WallSlideStart();
 		}
-		
-		return;
 	}
-	
-	DrawDebugLine(World, WallTraceBotStart, WallTraceBotEnd, WallTraceColor, bPersistentLines, LifeTime,
-		DepthPriority, Thickness);
 }
 
 void UAC_WallAndLedgeComponent::LedgeDetection()
@@ -196,7 +167,7 @@ void UAC_WallAndLedgeComponent::LedgeDetection()
 	}
 	
 	// Creates the FHitResult variable
-	FHitResult Hit;
+	FHitResult Hit(ForceInit);
 	
 	// Makes a constant expression for the Collision Channel to detect
 	constexpr ECollisionChannel WallTraceChannel = ECollisionChannel::ECC_WorldStatic;
@@ -245,6 +216,57 @@ void UAC_WallAndLedgeComponent::LedgeDetection()
 			bWallDetectTop = false;
 		}
 	}
+}
+
+void UAC_WallAndLedgeComponent::TraceFunction(AActor* PCOwner, UWorld* World, const bool bTopTrace, bool& bTraceResult)
+{
+	// Creates the FHitResult variable
+	FHitResult Hit;
+	
+	// Makes a constant expression for the Collision Channel to detect
+	constexpr ECollisionChannel WallTraceChannel = ECollisionChannel::ECC_WorldStatic;
+	
+	// Makes the Collision Parameters in which the trace will ignore the character
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(PCOwner);
+	
+	// Constant Expressions and Constant Floats
+	constexpr float WallDistanceEnd = 1.0f;
+	const float CharacterDirection = FMath::RoundToFloat(PCOwner->GetActorForwardVector().X);
+	
+	/* Set and Modify Vectors */
+	
+	// Set the Top Trace starting position with the capsule's radius as a starting point
+	FVector WallTraceStart = PCOwner->GetActorLocation();
+	WallTraceStart.X += WallRadiusMod * CharacterDirection;
+	
+	if (bTopTrace == true)
+	{
+		WallTraceStart.Z += WallHalfHeightMod;
+	}
+	else
+	{
+		WallTraceStart.Z -= WallHalfHeightMod;
+	}
+		
+	// Create the End Location for the Top and Bottom Traces and modify their X variable according to the Stick direction 
+	FVector WallTraceEnd = WallTraceStart;
+	WallTraceEnd.X += WallDistanceEnd * CharacterDirection;
+	
+	// Set the top wall detection according to the Trace's Hit
+	bTraceResult = World->LineTraceSingleByChannel(Hit, WallTraceStart, WallTraceEnd,
+		WallTraceChannel, CollisionParams);
+	
+	// Settings for the Debug Drawing Line
+	const FColor WallTraceColor = FColor::Red;
+	
+	constexpr bool bPersistentLines = false;
+	constexpr float LifeTime = -1.0f;
+	constexpr uint8 DepthPriority = 1;
+	constexpr float Thickness = 10.0f;
+	
+	DrawDebugLine(World, WallTraceStart, WallTraceEnd, WallTraceColor, bPersistentLines, LifeTime,
+		DepthPriority, Thickness);
 }
 
 void UAC_WallAndLedgeComponent::ResetOnLanded()

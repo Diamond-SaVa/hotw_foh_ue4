@@ -64,5 +64,7 @@ public:
 	
 	void LedgeDetection();
 	
+	void TraceFunction(AActor* PCOwner, UWorld* World, bool bTopTrace, bool& bTraceResult);
+	
 	void ResetOnLanded();
 };
