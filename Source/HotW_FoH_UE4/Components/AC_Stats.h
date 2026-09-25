@@ -71,6 +71,10 @@ public:
 	// Make the character heal EP
 	void SpendEP(int32 Value);
 	
+	FORCEINLINE int32 GetHP() const { return HP; }
+	
+	FORCEINLINE int32 GetEP() const { return EP; }
+	
 	// Make the character Heal HP
 	FORCEINLINE void HealHP(int32 Value) { HP = FMath::Clamp(HP + Value, 0, MaxHP); }
 	

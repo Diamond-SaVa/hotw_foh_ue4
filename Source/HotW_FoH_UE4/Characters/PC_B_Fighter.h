@@ -27,6 +27,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation Assets")
 	UAnimMontage* AM_Damage;
 	
+	// Animation Montage for Character's Damage Animations
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation Assets")
+	UAnimMontage* AM_KO;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Material Assets")
+	UMaterialInstance* MI_CharacterMaterial;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Material Assets")
+	UMaterialInstanceDynamic* MID_CharacterMaterial;
+	
 	// Attack Count
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack Properties")
 	int32 AtkCounter;

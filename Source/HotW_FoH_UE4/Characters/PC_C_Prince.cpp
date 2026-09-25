@@ -317,12 +317,12 @@ void APC_C_Prince::DodgeInterface(const float DodgePower, const float DeltaSecon
 	}
 	
 	// Reduces the DodgeModifier variable 
-	constexpr float MinModifier = 0.0f;
+	constexpr float MinModifier = 0.1f;
 	constexpr float MaxModifier = 1.0f;
 	DashModifier = FMath::Clamp(DashModifier + DeltaSeconds, MinModifier, MaxModifier);
 	
 	// Safely forces the velocity of the character for the necessary frames
-	CharacterVelocityInterface(DodgeVelocity * DodgeCurveFloat);
+	CharacterVelocityInterface(DodgeVelocity);
 }
 
 void APC_C_Prince::WallSlideStart()
