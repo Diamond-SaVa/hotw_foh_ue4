@@ -34,6 +34,6 @@ void UAN_AtkTrace::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* A
 		TraceLocation += PointDir;
 		
 		DamageInterface->SphereTraceDamage(TraceLocation, TraceLocation, 
-			ObjectTypes, TraceRadius);	
+			ObjectTypes, TraceRadius);
 	}
 }

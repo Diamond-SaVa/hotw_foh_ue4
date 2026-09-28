@@ -3,8 +3,6 @@
 
 #include "PC_B_Fighter.h"
 
-
-#include "PropertyPathHelpers.h"
 #include "HotW_FoH_UE4/Components/AC_Stats.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -93,16 +91,13 @@ void APC_B_Fighter::SphereTraceDamage(const FVector& StartLocation, const FVecto
 	TArray<TEnumAsByte<EObjectTypeQuery>>& ObjectTypes, const float Radius)
 {
 	UWorld* World = GetWorld();
-	if (World == nullptr)
-	{
-		return;
-	}
-	
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (MoveComp == nullptr)
+	if (World == nullptr || MoveComp == nullptr || IsValid(StatsComponent) == false)
 	{
 		return;
 	}
+
+	const int32 FinalAtk = StatsComponent->GetATK(bBonusAttack);
 	
 	// Prepare the array with FHitResults
 	TArray<FHitResult> HitResults;
@@ -137,31 +132,15 @@ void APC_B_Fighter::SphereTraceDamage(const FVector& StartLocation, const FVecto
 	
 	const FName HitTag = FName("HIT");
 	
-	FString DebugText = "";
-	
 	for (int i = 0; i < HitResults.Num(); ++i)
 	{
 		if (const UPrimitiveComponent* Comp = HitResults[i].GetComponent())
-		{
-			DebugText = TEXT("Found Component " + Comp->GetName());
-			
-			PrintDebug(DebugText);
-			
+		{			
 			if (Comp->ComponentHasTag(HitTag))
-			{
-				DebugText = (Comp->GetName() + " has tag");
-			
-				PrintDebug(DebugText);
-				
+			{				
 				if (IDamageable* DamageableActor = Cast<IDamageable>(Comp->GetOwner()))
 				{
-					DebugText = ("Actor does have IDamageable");
-			
-					PrintDebug(DebugText);
-					
-					DamageableActor->TakeDamage(5);
-					
-					return;
+					DamageableActor->TakeDamage(FinalAtk);
 				}
 			}
 		}

@@ -418,6 +418,7 @@ void APC_C_Prince::Attack()
 		return;
 	}
 	
+	bBonusAttack = false;
 	FString SectionString = "";
 	FName SectionName;
 	
@@ -433,6 +434,13 @@ void APC_C_Prince::Attack()
 	
 	switch (MovementState)
 	{
+	case EMovementState::ECS_AirState:
+		SectionString = "Air";
+		bBonusAttack = true;
+		SectionName = FName(*SectionString);
+		PlayAnimMontage_Safe(AM_Attack, SectionName);
+		SetActionState(EActionState::EAct_AttackState);
+		return;
 	case EMovementState::ECS_WallState:
 		SectionString = "Wall";
 		SectionName = FName(*SectionString);

@@ -56,6 +56,8 @@ protected:
 	// Bool to check if looking down
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement Data")
 	bool bIsLookingDown = false;
+	
+	bool bBonusAttack = false;
 
 public:
 	// Sets default values for this character's properties

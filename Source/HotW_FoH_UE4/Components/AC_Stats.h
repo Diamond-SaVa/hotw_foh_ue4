@@ -40,6 +40,11 @@ protected:
 	UPROPERTY(Category = "Player Data", VisibleAnywhere, BlueprintReadOnly)
 	int32 EP = 30;
 	
+	// ATK Points used to deal damage to opposing Characters
+	UPROPERTY(Category = "Player Data", EditAnywhere, BlueprintReadOnly, 
+		meta=(ClampMin = "1", UIMin = "1", ClampMax = "3", UIMax = "3"))
+	int32 ATK = 1;
+	
 	// Handler for managing Recovery Timer
 	UPROPERTY()
 	FTimerHandle RecoveryTimerHandle;
@@ -86,4 +91,10 @@ public:
 	
 	// Change the rate at which the character recovers EP
 	FORCEINLINE void SetRecoveryRate(float NewRate) { RecoveryInterval = NewRate; }
+	
+	// Obtains the currently set ATK points
+	FORCEINLINE int32 GetATK() const { return ATK; }
+	
+	// Obtains the currently set ATK points, plus a modifier
+	FORCEINLINE int32 GetATK(const bool bAttackModifier) const { return bAttackModifier ? ATK + 1 : ATK; }
 };
