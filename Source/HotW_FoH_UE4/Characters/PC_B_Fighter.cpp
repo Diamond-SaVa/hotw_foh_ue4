@@ -147,6 +147,11 @@ void APC_B_Fighter::SphereTraceDamage(const FVector& StartLocation, const FVecto
 	}
 }
 
+void APC_B_Fighter::SetTerminalVelocity(const float NewTerminalVelocity)
+{
+	Super::SetTerminalVelocity(NewTerminalVelocity);
+}
+
 void APC_B_Fighter::Attack()
 {
 	// Checks if the Character's Movement State is not currently attacking, hurting or even K.O.ed

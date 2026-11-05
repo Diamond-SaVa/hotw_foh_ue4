@@ -5,8 +5,8 @@
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/PhysicsVolume.h"
 #include "HotW_FoH_UE4/Components/AC_WallAndLedgeComponent.h"
+#include "Niagara/Public/NiagaraFunctionLibrary.h"
 #include "HotW_FoH_UE4/Controllers/PC_Control.h"
 #include "HotW_FoH_UE4/Interfaces/Interactions.h"
 
@@ -157,10 +157,13 @@ void APC_C_Prince::SetMovementState(const EMovementState NewState)
 	
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
+		constexpr float NewFallSpeed = 200.0f;
+		
 		switch (NewState)
 		{
+		case EMovementState::ECS_GlideState:
 		case EMovementState::ECS_WallState:
-			MoveComp->GetPhysicsVolume()->TerminalVelocity = 200.0f;
+			SetTerminalVelocity(NewFallSpeed);
 			CharacterVelocityInterface(FVector::ZeroVector);
 			break;
 		case EMovementState::ECS_LedgeState:
@@ -170,7 +173,9 @@ void APC_C_Prince::SetMovementState(const EMovementState NewState)
 		default:
 			// Return the terminal velocity to normal, as well as the 
 			// component's movement mode if it was set to NONE before.
-			MoveComp->GetPhysicsVolume()->TerminalVelocity = 4000.0f;
+			float constexpr RegularTerminalVelocity = 4000.0f; 
+			SetTerminalVelocity(RegularTerminalVelocity);
+			
 			if (MoveComp->MovementMode == MOVE_None)
 			{
 				MoveComp->SetMovementMode(MOVE_Falling);
@@ -198,17 +203,15 @@ void APC_C_Prince::SetActionState(const EActionState NewState)
 	case EActionState::EAct_AttackState:
 		if (MovementState == EMovementState::ECS_WallState)
 		{
-			SetTerminalVelocity(100.0f);
+			constexpr float SlowerWallSlideSpeed = 100.0f;
+			SetTerminalVelocity(SlowerWallSlideSpeed);
 		}
 		break;
 	default:
 		if (MovementState == EMovementState::ECS_WallState)
 		{
-			SetTerminalVelocity(200.0f);
-		}
-		else
-		{
-			SetTerminalVelocity(4000.0f);
+			constexpr float WallSlideSpeed = 200.0f;
+			SetTerminalVelocity(WallSlideSpeed);
 		}
 		
 		if (bIsLookingDown == true)
@@ -273,6 +276,11 @@ void APC_C_Prince::JumpStart()
 	}
 	
 	Super::JumpStart();
+}
+
+void APC_C_Prince::JumpHold()
+{
+	
 }
 
 void APC_C_Prince::HandleMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -688,6 +696,26 @@ void APC_C_Prince::ActivateCharacter()
 	{
 		SkeletalMeshComponent->SetVisibility(true);
 		SkeletalMeshComponent->Activate(true);
+	}
+	
+	PlayAnimMontage_Safe(AM_SwitchIn);
+	
+	if (NS_AppearEffect == nullptr)
+	{
+		return;
+	}
+	
+	if (UWorld* World = GetWorld())
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				World,
+				NS_AppearEffect,
+				GetActorLocation(),
+				FRotator::ZeroRotator,
+				FVector::OneVector,
+				true,
+				true
+			);
 	}
 }
 

@@ -88,6 +88,12 @@ protected:
 	virtual void SphereTraceDamage(const FVector& StartLocation, const FVector& EndLocation, 
 		TArray<TEnumAsByte<EObjectTypeQuery>>& ObjectTypes, const float Radius = 20.0f) override;
 	
+	/* Functions Overriden from Base Class */
+
+	/// Sets the falling velocity from the Character Movement Component's Physics Volume
+	/// @param NewTerminalVelocity Determines the new falling velocity
+	virtual void SetTerminalVelocity(float NewTerminalVelocity) override;
+	
 	/* Public functions for access from AI Trees */
 public:
 	/// Attack function that can be accessed by Events from AI Trees when it applies.

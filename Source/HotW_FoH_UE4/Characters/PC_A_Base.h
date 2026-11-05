@@ -132,9 +132,9 @@ protected:
 	// Function for Line Tracing Detection
 	void LineTraceResponse(const FVector& Direction, const float Distance, FHitResult& Hit, 
 		const ECollisionChannel CollisionChannel, const FCollisionQueryParams& QueryParams, bool& bResult) const;
-	
-	void SetTerminalVelocity(const float NewTerminal);
-	
+
+	virtual void SetTerminalVelocity(const float NewTerminalVelocity);
+
 	void StopTerminalVelocity();
 	
 	void PrintDebug(const FString& Message, float PrintTime = 2.0f);

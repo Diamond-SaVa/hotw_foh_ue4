@@ -47,8 +47,25 @@ void APC_Control::SetupInputComponent()
 		if (IA_Move != nullptr)
 		{
 			// Walking and Run
-			EIC->BindAction(IA_Move, ETriggerEvent::Triggered, this, &APC_Control::ActionMovement);
-			EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionMovementStop);
+			EIC->BindAction(IA_Move_Left, 
+				ETriggerEvent::Triggered,
+				this,
+				&APC_Control::ActionMovementLeft);
+			
+			EIC->BindAction(IA_Move_Right, 
+				ETriggerEvent::Triggered,
+				this, 
+				&APC_Control::ActionMovementRight);
+			
+			EIC->BindAction(IA_Move_Left, 
+				ETriggerEvent::Completed, 
+				this, 
+				&APC_Control::ActionMovementLeftStop);
+			
+			EIC->BindAction(IA_Move_Right, 
+				ETriggerEvent::Completed,
+				this, 
+				&APC_Control::ActionMovementRightStop);
 			
 			// Stop Wall Sliding conditions 
 			EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionStopWallSliding);
@@ -59,6 +76,7 @@ void APC_Control::SetupInputComponent()
 		{
 			// Ledge Jump Action
 			EIC->BindAction(IA_Jump, ETriggerEvent::Started, this, &APC_Control::ActionJumpStart);
+			EIC->BindAction(IA_Jump, ETriggerEvent::Triggered, this, &APC_Control::ActionJumpHold);
 			EIC->BindAction(IA_Jump, ETriggerEvent::Completed, this, &APC_Control::ActionJumpEnd);
 		}
 		
@@ -150,7 +168,30 @@ void APC_Control::ActionMovement(const FInputActionValue& Value)
 		return;
 	}
 	
+	if (MovingLeft == true && MovingRight == true)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, "FAILED AT CAST");
+		
+		ActionMovementStop();
+		
+		return;
+	}
+	
 	PCharacterArray[CurrentCharacterSlot].Get()->Move(Value.Get<float>());
+}
+
+void APC_Control::ActionMovementLeft(const FInputActionValue& Value)
+{
+	MovingLeft = true;
+	
+	ActionMovement(Value);
+}
+
+void APC_Control::ActionMovementRight(const FInputActionValue& Value)
+{
+	MovingRight = true;
+	
+	ActionMovement(Value);
 }
 
 void APC_Control::ActionMovementStop()
@@ -163,6 +204,20 @@ void APC_Control::ActionMovementStop()
 	PCharacterArray[CurrentCharacterSlot].Get()->MoveEnd();
 }
 
+void APC_Control::ActionMovementLeftStop()
+{
+	MovingLeft = false;
+	
+	ActionMovementStop();
+}
+
+void APC_Control::ActionMovementRightStop()
+{
+	MovingRight = false;
+	
+	ActionMovementStop();
+}
+
 void APC_Control::ActionJumpStart()
 {
 	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
@@ -171,6 +226,16 @@ void APC_Control::ActionJumpStart()
 	}
 	
 	PCharacterArray[CurrentCharacterSlot].Get()->JumpStart();
+}
+
+void APC_Control::ActionJumpHold()
+{
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false)
+	{
+		return;
+	}
+	
+	PCharacterArray[CurrentCharacterSlot].Get()->JumpHold();
 }
 
 void APC_Control::ActionJumpEnd()

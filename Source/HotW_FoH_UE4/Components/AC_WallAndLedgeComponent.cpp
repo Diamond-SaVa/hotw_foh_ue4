@@ -69,6 +69,7 @@ void UAC_WallAndLedgeComponent::SetMovementState(const EMovementState NewState)
 	{
 	case EMovementState::ECS_AirState:
 	case EMovementState::ECS_WallState:
+	case EMovementState::ECS_GlideState:
 		SetComponentTickEnabled(true);
 		break;
 	case EMovementState::ECS_LedgeState:

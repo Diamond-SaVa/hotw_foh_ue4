@@ -24,6 +24,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
 	UInputAction* IA_Move;
 	
+	// Input Action for Movement
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
+	UInputAction* IA_Move_Left;
+	
+	// Input Action for Movement
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
+	UInputAction* IA_Move_Right;
+	
 	// Input Action for Jumping
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
 	UInputAction* IA_Jump;
@@ -58,10 +66,16 @@ public:
 	
 	FTimerHandle ReenableSwitchTimerHandle;
 	
-	int32 CurrentCharacterSlot;
+	uint8 CurrentCharacterSlot;
 	
 	// 0 is true, 1 is false
-	int32 CanSwitchCharacter;
+	uint8 CanSwitchCharacter;
+	
+	UPROPERTY(VisibleAnywhere, Category="Character Input Data")
+	bool MovingLeft = false;
+	
+	UPROPERTY(VisibleAnywhere, Category="Character Input Data")
+	bool MovingRight = false;
 
 	// Sets default values for this actor's properties
 	APC_Control();
@@ -83,13 +97,33 @@ public:
 	UFUNCTION()
 	void ActionMovement(const FInputActionValue& Value);
 	
+	/// Movement Input of the Character from input Trigger
+	UFUNCTION()
+	void ActionMovementLeft(const FInputActionValue& Value);
+	
+	/// Movement Input of the Character from input Trigger
+	UFUNCTION()
+	void ActionMovementRight(const FInputActionValue& Value);
+	
 	/// Setup when movement stops from input Complete
 	UFUNCTION()
 	void ActionMovementStop();
 	
+	/// Setup when movement stops from input Complete
+	UFUNCTION()
+	void ActionMovementLeftStop();
+	
+	/// Setup when movement stops from input Complete
+	UFUNCTION()
+	void ActionMovementRightStop();
+	
 	/// Function for the Character to Jump
 	UFUNCTION()
 	void ActionJumpStart();
+	
+	/// Function for the Character to Jump
+	UFUNCTION()
+	void ActionJumpHold();
 	
 	/// Function for the Character to Stop Jumping
 	UFUNCTION()

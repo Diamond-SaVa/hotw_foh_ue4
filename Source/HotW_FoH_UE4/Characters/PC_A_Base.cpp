@@ -3,6 +3,8 @@
 
 #include "PC_A_Base.h"
 
+#include <string>
+
 #include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -64,7 +66,10 @@ void APC_A_Base::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 Pre
 		SetMovementState(EMovementState::ECS_GroundState);
 		break;;
 	case MOVE_Falling:
-		SetMovementState(EMovementState::ECS_AirState);
+		if (GetMovementState() != EMovementState::ECS_GlideState)
+		{
+			SetMovementState(EMovementState::ECS_AirState);
+		}
 		break;
 	case MOVE_Swimming:
 		SetMovementState(EMovementState::ECS_SwimState);
@@ -302,19 +307,6 @@ void APC_A_Base::PlayAnimMontage_Safe(UAnimMontage* AnimMontage, const FName Sec
 		return;
 	}
 	
-	PrintDebug(SectionName.ToString());
-	
-	FString DebugText = "NO ANIM BP!?";
-	
-	if (AnimMontage != nullptr)
-	{
-		DebugText = FString::Printf(TEXT("%s is attempting to play montage: %s"),
-			*GetName(),
-			*AnimMontage->GetName());
-	}
-	
-	PrintDebug(DebugText);
-	
 	PlayAnimMontage(AnimMontage, InPlayRate, SectionName);
 }
 
@@ -334,15 +326,25 @@ void APC_A_Base::LineTraceResponse(const FVector& Direction, const float Distanc
 	if (bResult)
 		Color = FColor::Green;
 	
-	DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, true, 
+	DrawDebugLine(GetWorld(), StartLocation, EndLocation, Color, true, 
 		5.0f, 1, 5.0f);
 }
 
-void APC_A_Base::SetTerminalVelocity(const float NewTerminal)
+void APC_A_Base::SetTerminalVelocity(const float NewTerminalVelocity)
 {
+	FString NewText = FString::Printf(TEXT("SetTerminalVelocity called with %f velocity"), 
+		NewTerminalVelocity);
+	
+	NewText += " from " + UEnum::GetValueAsString(GetMovementState());
+	
+	PrintDebug(NewText);
+	
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
-		MoveComp->GetPhysicsVolume()->TerminalVelocity = NewTerminal;
+		if (APhysicsVolume* PhysVolume = MoveComp->GetPhysicsVolume())
+		{
+			PhysVolume->TerminalVelocity = NewTerminalVelocity;
+		}
 	}
 }
 

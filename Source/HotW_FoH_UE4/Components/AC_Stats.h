@@ -25,7 +25,7 @@ protected:
 	int32 RecoveryEP = 3;
 	
 	// Max HP calculated with the GameInstance's HealthLevel variable
-	UPROPERTY(Category = "Player Data", VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Category = "Player Data", EditAnywhere, BlueprintReadOnly)
 	int32 MaxHP = 30;
 	
 	// HP that is always changing when being hit or healing, clamped to MaxHP
@@ -33,7 +33,7 @@ protected:
 	int32 HP = 30;
 	
 	// Max EP calculated with the GameInstance's EnergyLevel variable
-	UPROPERTY(Category = "Player Data", VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Category = "Player Data", EditAnywhere, BlueprintReadOnly)
 	int32 MaxEP = 30;
 	
 	// EP that is always changing when being hit or healing, clamped to MaxEP

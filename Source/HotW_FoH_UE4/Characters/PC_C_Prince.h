@@ -20,6 +20,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Movement Data")
 	class UAC_WallAndLedgeComponent* WallSlideComponent;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effects References")
+	class UNiagaraSystem* NS_AppearEffect;
+	
+	// Animation for Switching On and Out
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
+	UAnimMontage* AM_SwitchIn;
+	
 	// Animation for Interactions
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
 	UAnimMontage* AM_Interaction;
@@ -60,10 +67,12 @@ protected:
 	
 	float HalfHeightMemory;
 	
-	int32 CoyoteJumpCurrentCount = 0;
+	uint8 CoyoteJumpCurrentCount = 0;
 	
 	// ID for specific playable characters. 0 is for the prince. 1 is for the girl.
-	int32 CharacterID = 0;
+	uint8 CharacterID = 0;
+	
+	bool PeakReached = false;
 
 public:
 	// Sets default values for this character's properties
@@ -104,6 +113,8 @@ public:
 
 	// Overriden function to Jump behaviors before going through the super class
 	virtual void JumpStart() override;
+	
+	virtual void JumpHold();
 	
 protected:
 	// Callback with the correct signature for OnMontageEnded

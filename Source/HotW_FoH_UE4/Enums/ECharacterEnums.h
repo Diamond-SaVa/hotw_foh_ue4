@@ -16,7 +16,8 @@ enum class EMovementState : uint8
 	ECS_AirState	= 2	UMETA(DisplayName = "In the air"),
 	ECS_WallState	= 3 UMETA(DisplayName = "Sliding on Wall"),
 	ECS_LedgeState	= 4	UMETA(DisplayName = "Hands on the ledge"),
-	ECS_SwimState	= 3	UMETA(DisplayName = "Is Swimming")
+	ECS_SwimState	= 5	UMETA(DisplayName = "Is Swimming"),
+	ECS_GlideState	= 6	UMETA(DisplayName = "Is Gliding"),
 };
 
 /**

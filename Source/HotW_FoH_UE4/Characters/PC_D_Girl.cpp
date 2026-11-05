@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HotW_FoH_UE4/Components/AC_ShootingComponent.h"
+#include "HotW_FoH_UE4/Components/AC_WallAndLedgeComponent.h"
 
 // Sets default values
 APC_D_Girl::APC_D_Girl()
@@ -40,8 +41,6 @@ void APC_D_Girl::OnJumped_Implementation()
 			SectionName = FName(*SectionText);
 		}
 		
-		PrintDebug(SectionName.ToString());
-	
 		PlayAnimMontage_Safe(AM_Jump, SectionName);
 	
 		// Resets the bNotifyApex to true for each jump
@@ -51,6 +50,8 @@ void APC_D_Girl::OnJumped_Implementation()
 		SetActionState(EActionState::EAct_NilState);
 	
 		PrintDebug(FString::Printf(TEXT("Jump : %d - Max Count : %d"), JumpCurrentCount, JumpMaxCount));
+		
+		PeakReached = false;
 	
 		ACharacter::OnJumped_Implementation();
 		
@@ -66,8 +67,15 @@ void APC_D_Girl::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void APC_D_Girl::JumpStart()
+void APC_D_Girl::NotifyJumpApex()
 {
+	Super::NotifyJumpApex();
+	
+	PeakReached = true;
+}
+
+void APC_D_Girl::JumpStart()
+{	
 	switch (MovementState)
 	{
 	case EMovementState::ECS_WallState:
@@ -79,10 +87,43 @@ void APC_D_Girl::JumpStart()
 		return;
 		
 	default:
+		SetMovementState(EMovementState::ECS_GlideState);
 		break;
 	}
 	
 	Super::JumpStart();
+}
+
+void APC_D_Girl::JumpHold()
+{
+	Super::JumpHold();
+
+	const EMovementState State = GetMovementState();
+	if (PeakReached && State == EMovementState::ECS_GlideState)
+	{
+		FVector ForwardVector = GetActorForwardVector();
+		ForwardVector *= 2.0f;
+		AddMovementInput(ForwardVector);
+	}
+}
+
+void APC_D_Girl::JumpEnd()
+{	
+	const EMovementState NewState = GetCharacterMovement()->IsMovingOnGround() ? EMovementState::ECS_GroundState : 
+	EMovementState::ECS_AirState;
+	
+	switch (MovementState)
+	{
+	case EMovementState::ECS_AirState:
+	case EMovementState::ECS_GlideState:
+	SetMovementState(NewState);
+		break;
+	
+	default:
+		break;
+	}
+	
+	Super::JumpEnd();
 }
 
 void APC_D_Girl::Attack()
@@ -93,16 +134,6 @@ void APC_D_Girl::Attack()
 	}
 	
 	ShootingComponent->ShootNextAvailableProjectile();
-}
-
-void APC_D_Girl::LedgeGrabStart()
-{
-	Super::LedgeGrabStart();
-}
-
-void APC_D_Girl::WallSlideStart()
-{
-	Super::WallSlideStart();
 }
 
 void APC_D_Girl::WallJumpAnim()

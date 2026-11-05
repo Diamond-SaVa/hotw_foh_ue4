@@ -29,14 +29,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	/* Functions to Override for Girl */
+	// Called when apex of jump was reached
+	virtual void NotifyJumpApex() override;
+	
 	virtual void JumpStart() override;
 	
+	virtual void JumpHold() override;
+	
+	virtual void JumpEnd() override;
+	
 	virtual void Attack() override;
-	
-	virtual void LedgeGrabStart() override;
-	
-	virtual void WallSlideStart() override;
 	
 	/* Actions to Bind */
 	
