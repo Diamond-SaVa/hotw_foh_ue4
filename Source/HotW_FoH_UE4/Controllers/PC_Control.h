@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InputAction.h"
 #include "GameFramework/PlayerController.h"
+#include "HotW_FoH_UE4/Interfaces/PCInterface.h"
 #include "PC_Control.generated.h"
 
 class APC_C_Prince;
@@ -12,17 +13,13 @@ class UInputMappingContext;
 class UInputAction;
 
 UCLASS()
-class HOTW_FOH_UE4_API APC_Control : public APlayerController
+class HOTW_FOH_UE4_API APC_Control : public APlayerController, public IPCInterface
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Character Load Data")
 	TArray<TWeakObjectPtr<APC_C_Prince>> PCharacterArray;
-	
-	// Input Action for Movement
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
-	UInputAction* IA_Move;
 	
 	// Input Action for Movement
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
@@ -64,12 +61,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
 	UInputMappingContext* InputMappingContext;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="User Widgets")
+	TSubclassOf<UUserWidget> MainWidgetClass;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="User Widgets")
+	class UUW_CharacterSwitch* MainWidgetInstance;
+	
 	FTimerHandle ReenableSwitchTimerHandle;
 	
-	uint8 CurrentCharacterSlot;
+	// ID to set the Current Character Slot variable when character lands
+	UPROPERTY(VisibleAnywhere, Category="Character Input Data")
+	int32 NextCharacterSlot = 0; 
 	
-	// 0 is true, 1 is false
-	uint8 CanSwitchCharacter;
+	// The Slot of the Character to control in the Array
+	UPROPERTY(VisibleAnywhere, Category="Character Input Data")
+	uint8 CurrentCharacterSlot = 0;
+	
+	bool CanSwitchCharacter = true;
 	
 	UPROPERTY(VisibleAnywhere, Category="Character Input Data")
 	bool MovingLeft = false;
@@ -151,11 +159,28 @@ public:
 	void ActionDodgeStart();
 	
 	UFUNCTION()
+	void ActionBufferSwitch();
+	
+	UFUNCTION()
 	void ActionSwitchCharacter();
+	
+	void SwitchCharacterAfterBuffer();
+	
+	void SwitchCharacterFromLanding();
+	
+	void SwitchCharacterProcess();
+	
+	void ActivateSwitchBlockTimer();
 	
 	void CharacterSetUpFromBeginPlay(APC_C_Prince* PlayableCharacter, int32 CharacterID);
 	
 	void ReenableSwitch();
 	
 	void SendCharacterToManager();
+	
+protected:
+	/* Pure Virtual Interface Functions */
+	virtual void RegisterCharacterToControllerArray(APC_C_Prince* PlayableCharacter, const int32 CharacterID) override;
+	
+	virtual void CheckIfCouldSwitchOnLanded() override;
 };

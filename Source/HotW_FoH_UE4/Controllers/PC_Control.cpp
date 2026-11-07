@@ -5,9 +5,11 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/GameModeBase.h"
 #include "HotW_FoH_UE4/Characters/PC_C_Prince.h"
 #include "HotW_FoH_UE4/Interfaces/Manager.h"
+#include "HotW_FoH_UE4/UI/UW_CharacterSwitch.h"
 
 
 // Sets default values
@@ -23,6 +25,28 @@ APC_Control::APC_Control()
 void APC_Control::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (MainWidgetClass != nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("MainWidgetClass VALID!"));
+		
+		UUserWidget* UserWidget = CreateWidget<UUserWidget>(this, MainWidgetClass);
+		
+		MainWidgetInstance = Cast<UUW_CharacterSwitch>(UserWidget);
+		
+		if (MainWidgetInstance != nullptr)
+		{
+			MainWidgetInstance->AddToPlayerScreen();
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("MainWidgetInstance INVALID?!"));
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("MainWidgetClass INVALID!?"));
+	}
 }
 
 void APC_Control::SetupInputComponent()
@@ -44,7 +68,7 @@ void APC_Control::SetupInputComponent()
 	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent))
 	{		
 		/* Movement Actions (D-Pad/Left Joystick) */
-		if (IA_Move != nullptr)
+		if (IA_Move_Left != nullptr && IA_Move_Right != nullptr)
 		{
 			// Walking and Run
 			EIC->BindAction(IA_Move_Left, 
@@ -68,7 +92,7 @@ void APC_Control::SetupInputComponent()
 				&APC_Control::ActionMovementRightStop);
 			
 			// Stop Wall Sliding conditions 
-			EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionStopWallSliding);
+			// EIC->BindAction(IA_Move, ETriggerEvent::Completed, this, &APC_Control::ActionStopWallSliding);
 		}
 		
 		/* Jumping Actions (Bottom Face Button) */
@@ -118,7 +142,7 @@ void APC_Control::SetupInputComponent()
 		if (IA_Switch != nullptr)
 		{
 			// Switch
-			EIC->BindAction(IA_Switch, ETriggerEvent::Started, this, &APC_Control::ActionSwitchCharacter);
+			EIC->BindAction(IA_Switch, ETriggerEvent::Started, this, &APC_Control::ActionBufferSwitch);
 		}
 	}
 	/**/
@@ -139,7 +163,7 @@ void APC_Control::CharacterSetUpFromBeginPlay(APC_C_Prince* PlayableCharacter, c
 	}
 	else
 	{
-		PCharacterArray[CharacterID]->ActivateCharacter();
+		PCharacterArray[CharacterID]->ActivateCharacter(this);
 		
 		SendCharacterToManager();
 	}
@@ -147,7 +171,7 @@ void APC_Control::CharacterSetUpFromBeginPlay(APC_C_Prince* PlayableCharacter, c
 
 void APC_Control::ReenableSwitch()
 {
-	CanSwitchCharacter = 0;
+	CanSwitchCharacter = true;
 }
 
 void APC_Control::ActionAttack()
@@ -343,41 +367,106 @@ void APC_Control::ActionDodgeStart()
 	PCharacterArray[CurrentCharacterSlot].Get()->DodgeFromAnimation();
 }
 
-void APC_Control::ActionSwitchCharacter()
+void APC_Control::ActionBufferSwitch()
 {
-	if (CanSwitchCharacter == 1 || PCharacterArray[CurrentCharacterSlot].IsValid() == false	|| 
-		PCharacterArray[CurrentCharacterSlot].Get()->GetMovementState() != EMovementState::ECS_GroundState || 
+	if (CanSwitchCharacter == false ||
 		PCharacterArray[CurrentCharacterSlot].Get()->GetActionState() != EActionState::EAct_NilState)
 	{
 		return;
 	}
 	
+	if (NextCharacterSlot == 0)
+	{
+		NextCharacterSlot = 1;
+	}
+	else if (NextCharacterSlot == 1)
+	{
+		NextCharacterSlot = 0;
+	}
+	
+	MainWidgetInstance->SwitchToCharacter(NextCharacterSlot);
+	
+	CanSwitchCharacter = false;
+	
+	SwitchCharacterAfterBuffer();
+	
+	ActivateSwitchBlockTimer();
+}
+
+void APC_Control::ActionSwitchCharacter()
+{
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false || 
+		PCharacterArray[CurrentCharacterSlot].Get()->GetMovementState() != EMovementState::ECS_GroundState || 
+		PCharacterArray[CurrentCharacterSlot].Get()->GetActionState() != EActionState::EAct_NilState ||
+		NextCharacterSlot == CurrentCharacterSlot)
+	{
+		return;
+	}
+	
+	SwitchCharacterProcess();
+	
+	ActivateSwitchBlockTimer();
+}
+
+void APC_Control::SwitchCharacterAfterBuffer()
+{
+	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false || 
+		PCharacterArray[CurrentCharacterSlot].Get()->GetMovementState() != EMovementState::ECS_GroundState || 
+		NextCharacterSlot == CurrentCharacterSlot)
+	{
+		return;
+	}
+	
+	SwitchCharacterProcess();
+	
+	ActivateSwitchBlockTimer();
+}
+
+
+void APC_Control::SwitchCharacterFromLanding()
+{
+	if (NextCharacterSlot == CurrentCharacterSlot)
+	{
+		return;
+	}
+	
+	SwitchCharacterProcess();
+	
+	ActivateSwitchBlockTimer();
+}
+
+void APC_Control::SwitchCharacterProcess()
+{
 	const FVector Location = PCharacterArray[CurrentCharacterSlot].Get()->GetActorLocation();
 	
 	const FRotator Rotation = PCharacterArray[CurrentCharacterSlot].Get()->GetActorRotation();
 	
 	PCharacterArray[CurrentCharacterSlot].Get()->DeactivateCharacter();
 	
-	if (CurrentCharacterSlot == 0)
-	{
-		CurrentCharacterSlot = 1;
-	}
-	else if (CurrentCharacterSlot == 1)
-	{
-		CurrentCharacterSlot = 0;
-	}
+	CurrentCharacterSlot = NextCharacterSlot;
 	
 	PCharacterArray[CurrentCharacterSlot].Get()->SetActorLocation(Location);
 	
 	PCharacterArray[CurrentCharacterSlot].Get()->SetActorRotation(Rotation);
 	
-	PCharacterArray[CurrentCharacterSlot].Get()->ActivateCharacter();
+	PCharacterArray[CurrentCharacterSlot].Get()->ActivateCharacter(this);
 	
 	SendCharacterToManager();
 	
-	CanSwitchCharacter = 1;
-	
+	CanSwitchCharacter = false;
+}
+
+void APC_Control::ActivateSwitchBlockTimer()
+{
 	FTimerManager& WorldTimer = GetWorldTimerManager();
+	
+	// In the case that the Timer is Active and the Character lands, ready to Switch, deactivate it so the 
+	// switching button is not available to be pressed until the switch is done.
+	if (WorldTimer.IsTimerActive(ReenableSwitchTimerHandle) == true)
+	{
+		WorldTimer.ClearTimer(ReenableSwitchTimerHandle);
+	}
+	
 	if (WorldTimer.IsTimerActive(ReenableSwitchTimerHandle) == false)
 	{
 		WorldTimer.SetTimer(
@@ -403,4 +492,14 @@ void APC_Control::SendCharacterToManager()
 	{
 		Manager->SetActiveCharacter(CurrentCharacterSlot, PCharacterArray[CurrentCharacterSlot].Get());
 	}
+}
+
+void APC_Control::RegisterCharacterToControllerArray(APC_C_Prince* PlayableCharacter, const int32 CharacterID)
+{
+	CharacterSetUpFromBeginPlay(PlayableCharacter, CharacterID);
+}
+
+void APC_Control::CheckIfCouldSwitchOnLanded()
+{
+	SwitchCharacterFromLanding();
 }

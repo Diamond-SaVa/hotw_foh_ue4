@@ -12,7 +12,8 @@ public class HotW_FoH_UE4 : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
 			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Niagara",
-			"AIModule", "GameplayTasks", "NavigationSystem"
+			"AIModule", "GameplayTasks", "NavigationSystem",
+			"UMG", "Slate", "SlateCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

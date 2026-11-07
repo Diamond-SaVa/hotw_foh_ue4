@@ -164,7 +164,7 @@ public:
 
 	void DeactivateFromAnim();
 	
-	void ActivateCharacter();
+	void ActivateCharacter(AController* NewController);
 	
 	void DeactivateCharacter();
 	

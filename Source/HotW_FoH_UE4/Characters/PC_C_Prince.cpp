@@ -5,10 +5,10 @@
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "HotW_FoH_UE4/Components/AC_WallAndLedgeComponent.h"
 #include "Niagara/Public/NiagaraFunctionLibrary.h"
-#include "HotW_FoH_UE4/Controllers/PC_Control.h"
+#include "HotW_FoH_UE4/Components/AC_WallAndLedgeComponent.h"
 #include "HotW_FoH_UE4/Interfaces/Interactions.h"
+#include "HotW_FoH_UE4/Interfaces/PCInterface.h"
 
 
 // Sets default values
@@ -40,9 +40,12 @@ void APC_C_Prince::BeginPlay()
 	
 	if (UWorld* World = GetWorld())
 	{
-		if (APC_Control* PC =  Cast<APC_Control>(World->GetFirstPlayerController()))
+		if (APlayerController* PC = World->GetFirstPlayerController())
 		{
-			PC->CharacterSetUpFromBeginPlay(this, CharacterID);
+			if (IPCInterface* PCInterface = Cast<IPCInterface>(PC))
+			{
+				PCInterface->RegisterCharacterToControllerArray(this, CharacterID);
+			}
 		}
 	}
 	
@@ -116,6 +119,15 @@ void APC_C_Prince::Landed(const FHitResult& Hit)
 	Super::Landed(Hit);
 	
 	ResetWallLedgeComponentDetection();
+	
+	// Check if Controller has Interface
+	if (Controller != nullptr)
+	{
+		if (IPCInterface* PCInterface = Cast<IPCInterface>(Controller))
+		{
+			PCInterface->CheckIfCouldSwitchOnLanded();
+		}
+	}
 	
 	// If player is holding the button stick or D-Pad down, start crouching on landing
 	if (bIsLookingDown == true)
@@ -683,7 +695,7 @@ void APC_C_Prince::DeactivateFromAnim()
 	PlayAnimMontage_Safe(AM_SwitchAnim);
 }
 
-void APC_C_Prince::ActivateCharacter()
+void APC_C_Prince::ActivateCharacter(AController* NewController)
 {
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
@@ -717,6 +729,8 @@ void APC_C_Prince::ActivateCharacter()
 				true
 			);
 	}
+	
+	Controller = NewController;
 }
 
 void APC_C_Prince::DeactivateCharacter()
