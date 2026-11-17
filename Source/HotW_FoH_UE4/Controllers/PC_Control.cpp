@@ -144,6 +144,27 @@ void APC_Control::SetupInputComponent()
 			// Switch
 			EIC->BindAction(IA_Switch, ETriggerEvent::Started, this, &APC_Control::ActionBufferSwitch);
 		}
+		
+		/* Mask Switching Actions (Right Stick Directions) */
+		if (IA_Mask_1 != nullptr)
+		{
+			EIC->BindAction(IA_Mask_1, ETriggerEvent::Started, this, &APC_Control::ActionMaskSwitchSlotOne);
+		}
+		
+		if (IA_Mask_2 != nullptr)
+		{
+			EIC->BindAction(IA_Mask_2, ETriggerEvent::Started, this, &APC_Control::ActionMaskSwitchSlotTwo);
+		}
+		
+		if (IA_Mask_3 != nullptr)
+		{
+			EIC->BindAction(IA_Mask_3, ETriggerEvent::Started, this, &APC_Control::ActionMaskSwitchSlotThree);
+		}
+		
+		if (IA_Mask_4 != nullptr)
+		{
+			EIC->BindAction(IA_Mask_4, ETriggerEvent::Started, this, &APC_Control::ActionMaskSwitchSlotFour);
+		}
 	}
 	/**/
 }
@@ -172,6 +193,8 @@ void APC_Control::CharacterSetUpFromBeginPlay(APC_C_Prince* PlayableCharacter, c
 void APC_Control::ReenableSwitch()
 {
 	CanSwitchCharacter = true;
+	
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("Timer OFF"));
 }
 
 void APC_Control::ActionAttack()
@@ -386,26 +409,9 @@ void APC_Control::ActionBufferSwitch()
 	
 	MainWidgetInstance->SwitchToCharacter(NextCharacterSlot);
 	
-	CanSwitchCharacter = false;
+	ActivateSwitchBlockTimer();
 	
 	SwitchCharacterAfterBuffer();
-	
-	ActivateSwitchBlockTimer();
-}
-
-void APC_Control::ActionSwitchCharacter()
-{
-	if (PCharacterArray[CurrentCharacterSlot].IsValid() == false || 
-		PCharacterArray[CurrentCharacterSlot].Get()->GetMovementState() != EMovementState::ECS_GroundState || 
-		PCharacterArray[CurrentCharacterSlot].Get()->GetActionState() != EActionState::EAct_NilState ||
-		NextCharacterSlot == CurrentCharacterSlot)
-	{
-		return;
-	}
-	
-	SwitchCharacterProcess();
-	
-	ActivateSwitchBlockTimer();
 }
 
 void APC_Control::SwitchCharacterAfterBuffer()
@@ -453,11 +459,15 @@ void APC_Control::SwitchCharacterProcess()
 	
 	SendCharacterToManager();
 	
-	CanSwitchCharacter = false;
+	ActivateSwitchBlockTimer();
 }
 
 void APC_Control::ActivateSwitchBlockTimer()
 {
+	CanSwitchCharacter = false;
+	
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("Timer ON"));
+	
 	FTimerManager& WorldTimer = GetWorldTimerManager();
 	
 	// In the case that the Timer is Active and the Character lands, ready to Switch, deactivate it so the 
@@ -479,6 +489,102 @@ void APC_Control::ActivateSwitchBlockTimer()
 	}
 }
 
+void APC_Control::ActionMaskSwitchSlotOne()
+{
+	if (CanSwitchCharacter == false)
+	{
+		return;
+	}
+
+	constexpr EMaskState MaskState = EMaskState::EM_Angel;
+
+	const int32 Lenght = PCharacterArray.Num();
+	
+	for (int32 i = 0; i < Lenght; i++)
+	{
+		if (PCharacterArray[i].IsValid())
+		{
+			PCharacterArray[i].Get()->SwitchMaskTo(MaskState);
+		}
+	}
+	
+	MainWidgetInstance->SwitchToMask(MaskState);
+	
+	ActivateSwitchBlockTimer();
+}
+
+void APC_Control::ActionMaskSwitchSlotTwo()
+{
+	if (CanSwitchCharacter == false)
+	{
+		return;
+	}
+
+	constexpr EMaskState MaskState = EMaskState::EM_Ninja;
+
+	const int32 Lenght = PCharacterArray.Num();
+	
+	for (int32 i = 0; i < Lenght; i++)
+	{
+		if (PCharacterArray[i].IsValid())
+		{
+			PCharacterArray[i].Get()->SwitchMaskTo(MaskState);
+		}
+	}
+	
+	MainWidgetInstance->SwitchToMask(MaskState);
+	
+	ActivateSwitchBlockTimer();
+}
+
+void APC_Control::ActionMaskSwitchSlotThree()
+{
+	if (CanSwitchCharacter == false)
+	{
+		return;
+	}
+
+	constexpr EMaskState MaskState = EMaskState::EM_Diver;
+
+	const int32 Lenght = PCharacterArray.Num();
+	
+	for (int32 i = 0; i < Lenght; i++)
+	{
+		if (PCharacterArray[i].IsValid())
+		{
+			PCharacterArray[i].Get()->SwitchMaskTo(MaskState);
+		}
+	}
+	
+	MainWidgetInstance->SwitchToMask(MaskState);
+	
+	ActivateSwitchBlockTimer();
+}
+
+void APC_Control::ActionMaskSwitchSlotFour()
+{
+	if (CanSwitchCharacter == false)
+	{
+		return;
+	}
+
+	constexpr EMaskState MaskState = EMaskState::EM_Winds;
+
+	const int32 Lenght = PCharacterArray.Num();
+	
+	for (int32 i = 0; i < Lenght; i++)
+	{
+		if (PCharacterArray[i].IsValid())
+		{
+			PCharacterArray[i].Get()->SwitchMaskTo(MaskState);
+		}
+	}
+	
+	MainWidgetInstance->SwitchToMask(MaskState);
+	
+	ActivateSwitchBlockTimer();
+}
+
 void APC_Control::SendCharacterToManager()
 {
 	UWorld* TheWorld = GetWorld();
@@ -492,6 +598,8 @@ void APC_Control::SendCharacterToManager()
 	{
 		Manager->SetActiveCharacter(CurrentCharacterSlot, PCharacterArray[CurrentCharacterSlot].Get());
 	}
+	
+	ActivateSwitchBlockTimer();
 }
 
 void APC_Control::RegisterCharacterToControllerArray(APC_C_Prince* PlayableCharacter, const int32 CharacterID)

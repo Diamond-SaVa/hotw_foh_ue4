@@ -22,6 +22,15 @@ void APC_D_Girl::BeginPlay()
 {
 	CharacterID = 1;
 	
+	if (MaskState == EMaskState::EM_Angel)
+	{
+		JumpMaxCount = 2;
+	}
+	else
+	{
+		JumpMaxCount = 1;
+	}
+	
 	Super::BeginPlay();
 }
 
@@ -87,7 +96,10 @@ void APC_D_Girl::JumpStart()
 		return;
 		
 	default:
-		SetMovementState(EMovementState::ECS_GlideState);
+		if (MaskState == EMaskState::EM_Winds)
+		{
+			SetMovementState(EMovementState::ECS_GlideState);
+		}
 		break;
 	}
 	
@@ -116,7 +128,7 @@ void APC_D_Girl::JumpEnd()
 	{
 	case EMovementState::ECS_AirState:
 	case EMovementState::ECS_GlideState:
-	SetMovementState(NewState);
+		SetMovementState(NewState);
 		break;
 	
 	default:
@@ -134,6 +146,20 @@ void APC_D_Girl::Attack()
 	}
 	
 	ShootingComponent->ShootNextAvailableProjectile();
+}
+
+void APC_D_Girl::SwitchMaskTo(EMaskState MaskValue)
+{
+	Super::SwitchMaskTo(MaskValue);
+	
+	if (MaskState == EMaskState::EM_Angel)
+	{
+		JumpMaxCount = 2;
+	}
+	else
+	{
+		JumpMaxCount = 1;
+	}
 }
 
 void APC_D_Girl::WallJumpAnim()

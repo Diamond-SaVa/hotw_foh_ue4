@@ -37,13 +37,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Material Assets")
 	UMaterialInstanceDynamic* MID_CharacterMaterial;
 	
-	// Attack Count
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack Properties")
-	int32 AtkCounter;
+	// Attack Trace Duration
+	UPROPERTY(EditAnywhere, Category = "Attack Properties")
+	float DrawDamageTraceDuration = 1.0f;
 	
 	// Attack Count
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack Properties")
-	int32 AtkCounterMax = 1;
+	UPROPERTY(VisibleAnywhere, Category = "Attack Properties")
+	uint32 AtkCounter;
+	
+	// Attack Count
+	UPROPERTY(EditAnywhere, Category = "Attack Properties")
+	uint32 AtkCounterMax = 1;
 	
 	// Remembers if the character can or can't be hit or hurt
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")

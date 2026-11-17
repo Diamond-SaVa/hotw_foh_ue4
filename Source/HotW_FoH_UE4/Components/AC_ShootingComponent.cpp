@@ -41,11 +41,30 @@ void UAC_ShootingComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
+void UAC_ShootingComponent::SpawnNextProjectile(UWorld* World)
+{
+	if (AActor* ANewProjectile = World->SpawnActor(ClassOfProjectile.Get()))
+	{
+		ProjectileArray.Add(ANewProjectile);
+	}
+}
+
 void UAC_ShootingComponent::ShootNextAvailableProjectile()
 {
-	if (CanShoot == 1 || ProjectileArray.Num() == 0)
+	if (GetCanShoot() == false)
 	{
 		return;
+	}
+	
+	UWorld* World = GetWorld();
+	if (IsValid(World) == false)
+	{
+		return;
+	}
+	
+	if (ProjectileArray.Num() <= 0)
+	{
+		SpawnNextProjectile(World);
 	}
 
 	for (AActor* Projectile : ProjectileArray)
@@ -57,28 +76,28 @@ void UAC_ShootingComponent::ShootNextAvailableProjectile()
 		
 		if (AA_Projectile* Shoot = Cast<AA_Projectile>(Projectile))
 		{
-			if (Shoot->ProjectileIsActive == 0)
+			
+			if (Shoot->GetProjectileIsActive())
 			{
 				Shoot->ActivateProjectile(GetOwner(), NextProjectileData.MovementSpeed, 
-					NextProjectileData.BounceSpeed, NextProjectileData.GravityChange);
+				NextProjectileData.BounceSpeed, NextProjectileData.GravityChange, 3.0f);
 				
 				CanShoot = 1;
 				
-				if (UWorld* World = GetWorld())
-				{
-					FTimerManager& WorldTimer = World->GetTimerManager();
+				FTimerManager& WorldTimer = World->GetTimerManager();
 					
-					WorldTimer.SetTimer(
-						CooldownTimerHandle,              // The tracking handle
-						this,                     // The context object running the function
-						&UAC_ShootingComponent::RestartShoot, // The address of your function
-						0.5f,                     // Time in seconds between executions
-						false                     // True to loop continuously, False to run only once
-					);
-				}
+				WorldTimer.SetTimer(
+					CooldownTimerHandle,              // The tracking handle
+					this,                     // The context object running the function
+					&UAC_ShootingComponent::RestartShoot, // The address of your function
+					0.5f,                     // Time in seconds between executions
+					false                     // True to loop continuously, False to run only once
+				);
 				
 				return;
 			}
+			
+			SpawnNextProjectile(World);
 		}
 	}
 }

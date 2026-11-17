@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "AC_ShootingComponent.generated.h"
 
+
 USTRUCT(BlueprintType)
 struct FProjectileData
 {
@@ -32,6 +33,9 @@ class HOTW_FOH_UE4_API UAC_ShootingComponent : public UActorComponent
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
 	TArray<AActor*> ProjectileArray;
+	
+	UPROPERTY(EditAnywhere, Category="Projectiles")
+	TSoftClassPtr<class AA_Projectile> ClassOfProjectile;
 
 	// Timer for the Shooting Restart Function
 	FTimerHandle CooldownTimerHandle;
@@ -53,7 +57,13 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 public:
+	void SpawnNextProjectile(UWorld* World);
+	
 	void ShootNextAvailableProjectile();
 	
 	void RestartShoot();
+	
+	/* Getters and Setters */
+	
+	FORCEINLINE bool GetCanShoot() const { return CanShoot == 0; }
 };

@@ -23,6 +23,10 @@ UAC_Stats::UAC_Stats()
 void UAC_Stats::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	HP = MaxHP;
+	
+	EP = MaxEP;
 
 	// ...
 }

@@ -57,6 +57,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
 	UInputAction* IA_Switch;
 	
+	// Input Action used for Switching Mask No 1
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
+	UInputAction* IA_Mask_1;
+	
+	// Input Action used for Switching Mask No 2
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
+	UInputAction* IA_Mask_2;
+	
+	// Input Action used for Switching Mask No 3
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
+	UInputAction* IA_Mask_3;
+	
+	// Input Action used for Switching Mask No 4
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
+	UInputAction* IA_Mask_4;
+	
 	// Input Mapping Context for regular inputs 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Input Assets")
 	UInputMappingContext* InputMappingContext;
@@ -161,9 +177,6 @@ public:
 	UFUNCTION()
 	void ActionBufferSwitch();
 	
-	UFUNCTION()
-	void ActionSwitchCharacter();
-	
 	void SwitchCharacterAfterBuffer();
 	
 	void SwitchCharacterFromLanding();
@@ -171,6 +184,19 @@ public:
 	void SwitchCharacterProcess();
 	
 	void ActivateSwitchBlockTimer();
+	
+	/// Mask Input of the Character to Change Mask to Input
+	UFUNCTION()
+	void ActionMaskSwitchSlotOne();
+	
+	UFUNCTION()
+	void ActionMaskSwitchSlotTwo();
+	
+	UFUNCTION()
+	void ActionMaskSwitchSlotThree();
+	
+	UFUNCTION()
+	void ActionMaskSwitchSlotFour();
 	
 	void CharacterSetUpFromBeginPlay(APC_C_Prince* PlayableCharacter, int32 CharacterID);
 	

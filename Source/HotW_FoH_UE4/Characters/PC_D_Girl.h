@@ -40,6 +40,8 @@ public:
 	
 	virtual void Attack() override;
 	
+	virtual void SwitchMaskTo(EMaskState MaskValue) override;
+	
 	/* Actions to Bind */
 	
 	/* Functions Unique to Girl Character */

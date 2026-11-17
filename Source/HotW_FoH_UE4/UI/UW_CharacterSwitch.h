@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "HotW_FoH_UE4/Enums/ECharacterEnums.h"
 #include "UW_CharacterSwitch.generated.h"
 
 class UImage;
@@ -22,11 +23,25 @@ protected:
 	
 public:
 	
-	UPROPERTY(BlueprintReadOnly, meta=(BindWidget), Category="UI")
+	TSoftObjectPtr<UImage> CurrentMask;	
+	
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget), Category="Character Switch UI")
 	UImage* PrinceIcon;
 	
-	UPROPERTY(BlueprintReadOnly, meta=(BindWidget), Category="UI")
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget), Category="Character Switch UI")
 	UImage* GirlIcon;
+	
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget), Category="Mask Switch UI")
+	UImage* MaskIconA;
+	
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget), Category="Mask Switch UI")
+	UImage* MaskIconB;
+	
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget), Category="Mask Switch UI")
+	UImage* MaskIconC;
+	
+	UPROPERTY(BlueprintReadOnly, meta=(BindWidget), Category="Mask Switch UI")
+	UImage* MaskIconD;
 	
 	UPROPERTY(Transient, BlueprintReadOnly, meta = (BindWidgetAnim), Category = "UI Animation")
 	UWidgetAnimation* SwitchToGirlAnim;
@@ -34,8 +49,15 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, meta = (BindWidgetAnim), Category = "UI Animation")
 	UWidgetAnimation* SwitchToPrinceAnim;
 	
+	uint8 PC_CharacterID = 0;
+	
+	EMaskState PC_MaskState;
+	
+	
 	void SwitchToCharacter(int32 CharacterID);
 	
 	UFUNCTION(BlueprintCallable, Category="UI Functions")
 	void OnSwitchCharacterAnimationFinished();
+	
+	void SwitchToMask(EMaskState NewMaskState);
 };

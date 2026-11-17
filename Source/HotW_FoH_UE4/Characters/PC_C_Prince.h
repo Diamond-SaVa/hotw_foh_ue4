@@ -7,6 +7,8 @@
 #include "HotW_FoH_UE4/Interfaces/Movement.h"
 #include "PC_C_Prince.generated.h"
 
+class UAC_MaskComponent;
+class UNiagaraSystem;
 class UCurveFloat;
 
 UCLASS()
@@ -14,14 +16,28 @@ class HOTW_FOH_UE4_API APC_C_Prince : public APC_B_Fighter, public IMovement
 {
 	GENERATED_BODY()
 	
-protected:	
+protected:
 	FTimerHandle CoyoteTimerHandle;
+	
+	FTimerHandle HookshotTimerHandle;
+	
+	// Weak pointer to an Actor to interact with if player enters in range of an NPC or interactable object
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction Data")
+	TWeakObjectPtr<AActor> ActorToInteract;
+
+	FVector HookshotGoalPosition = FVector::ZeroVector;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Mask Component")
+	UStaticMeshComponent* MaskStaticMesh;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Mask Component")
+	UAC_MaskComponent* MaskComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Movement Data")
 	class UAC_WallAndLedgeComponent* WallSlideComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effects References")
-	class UNiagaraSystem* NS_AppearEffect;
+	UNiagaraSystem* NS_AppearEffect;
 	
 	// Animation for Switching On and Out
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation Assets")
@@ -53,9 +69,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement Data")
 	UCurveFloat* DodgeCurve;
 	
-	// Weak pointer to an Actor to interact with if player enters in range of an NPC or interactable object
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction Data")
-	TWeakObjectPtr<AActor> ActorToInteract;
+	UPROPERTY(EditAnywhere, Category="Hookshot")
+	float HookshotMoveSpeed = 1200.0f;
+	
+	UPROPERTY(EditAnywhere, Category="Hookshot")
+	float HookshotDistance = 500.0f;
 	
 	// Dodge Power Modifier reduction
 	float DashModifier = 0.0f;
@@ -66,6 +84,8 @@ protected:
 	float WallTraceHeightModifier = 0.5f;
 	
 	float HalfHeightMemory;
+	
+	EMaskState MaskState;
 	
 	uint8 CoyoteJumpCurrentCount = 0;
 	
@@ -142,6 +162,12 @@ public:
 	
 	virtual void Attack() override;
 	
+	void HookshotTrace();
+	
+	void TimedHookshotMoveToDestination(float DistanceThreshold);
+	
+	void StopHookshot();
+	
 	virtual void LedgeUpAnim();
 	
 	virtual void LedgeDownAnim();
@@ -169,4 +195,16 @@ public:
 	void DeactivateCharacter();
 	
 	void ResetWallLedgeComponentDetection();
+	
+	virtual void SwitchMaskTo(EMaskState MaskValue);
+	
+	/* Getters and Setters */
+	
+	FORCEINLINE UStaticMeshComponent* GetMaskStaticMesh() const { return MaskStaticMesh; }
+	
+	void SetMaskStaticMesh(UStaticMesh* NewMesh);
+	
+	FORCEINLINE UAC_MaskComponent* GetMaskComponent() const { return MaskComponent; }
+	
+	FORCEINLINE EMaskState GetMaskState() const { return MaskState; }
 };

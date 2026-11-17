@@ -114,12 +114,12 @@ void APC_B_Fighter::SphereTraceDamage(const FVector& StartLocation, const FVecto
 			ObjectTypes,					// Object Type
 			false,							// bTraceComplex
 			{this}, 
-			EDrawDebugTrace::ForDuration,	// <--- Enforces the Debug Drawing
+			EDrawDebugTrace::None,	// <--- Enforces the Debug Drawing
 			HitResults, 
 			true,							// bIgnoreSelf
 			FLinearColor::Red,				// Trace Color
 			FLinearColor::Green,			// Hit Color
-			1.0f							// Draw Duration (Seconds)
+			DrawDamageTraceDuration			// Draw Duration (Seconds)
 		);
 		
 		//World->SweepMultiByChannel(HitResults, StartLocation, EndLocation, FQuat::Identity, TraceChannel, 

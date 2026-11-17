@@ -5,10 +5,13 @@
 
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HotW_FoH_UE4/Components/AC_MaskComponent.h"
+#include "HotW_FoH_UE4/Components/AC_Stats.h"
 #include "Niagara/Public/NiagaraFunctionLibrary.h"
 #include "HotW_FoH_UE4/Components/AC_WallAndLedgeComponent.h"
 #include "HotW_FoH_UE4/Interfaces/Interactions.h"
 #include "HotW_FoH_UE4/Interfaces/PCInterface.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 // Sets default values
@@ -16,6 +19,17 @@ APC_C_Prince::APC_C_Prince()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	
+	MaskStaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("MaskStaticMesh"));
+	if (MaskStaticMesh != nullptr)
+	{
+		MaskStaticMesh->AttachToComponent(
+			GetMesh(),
+			FAttachmentTransformRules::KeepWorldTransform,
+			FName("head"));
+	}
+	
+	MaskComponent = CreateDefaultSubobject<UAC_MaskComponent>(FName("MaskComponent"));
 	
 	UCharacterMovementComponent* MovementComponent = GetCharacterMovement();
 	if (MovementComponent != nullptr)
@@ -347,24 +361,27 @@ void APC_C_Prince::DodgeInterface(const float DodgePower, const float DeltaSecon
 
 void APC_C_Prince::WallSlideStart()
 {	
-	SetMovementState(EMovementState::ECS_WallState);
-		
-	FString SectionText = "Default";
-	
-	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	if (MaskState == EMaskState::EM_Ninja)
 	{
-		const float UpVelocity = MoveComp->GetLastUpdateVelocity().Z;
-		constexpr float UpVelocityThreshold = 300.0f;
-			
-		if (UpVelocity > UpVelocityThreshold)
-		{
-			SectionText = "Up";	
-		}
-	}
-
-	const FName SectionName = *SectionText;
+		SetMovementState(EMovementState::ECS_WallState);
+		
+		FString SectionText = "Default";
 	
-	PlayAnimMontage_Safe(AM_WallStart, SectionName);
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			const float UpVelocity = MoveComp->GetLastUpdateVelocity().Z;
+			constexpr float UpVelocityThreshold = 300.0f;
+			
+			if (UpVelocity > UpVelocityThreshold)
+			{
+				SectionText = "Up";	
+			}
+		}
+
+		const FName SectionName = *SectionText;
+	
+		PlayAnimMontage_Safe(AM_WallStart, SectionName);
+	}
 }
 
 void APC_C_Prince::LedgeGrabStart()
@@ -437,6 +454,18 @@ void APC_C_Prince::Attack()
 	{
 		return;
 	}
+	
+	switch(GetMaskComponent()->GetMaskState())
+	{
+	case EMaskState::EM_Angel:
+		return;
+	case EMaskState::EM_Ninja:
+		HookshotTrace();
+		return;
+	default:
+		break;
+	}
+	
 	
 	bBonusAttack = false;
 	FString SectionString = "";
@@ -528,6 +557,128 @@ void APC_C_Prince::Attack()
 	// Otherwise, proceed to attack as normally intended on the ground or in the air.
 	Super::Attack();
 }
+
+void APC_C_Prince::HookshotTrace()
+{
+	if (MovementState == EMovementState::ECS_WallState || MovementState == EMovementState::ECS_LedgeState)
+	{
+		return;
+	}
+	
+	const FVector StartLocation = GetActorLocation();
+	
+	const FVector HookDirection = bIsLookingUp ? 
+	(GetActorUpVector() * HookshotDistance) : (GetActorForwardVector() * HookshotDistance);  
+
+	const FVector EndLocation = StartLocation + HookDirection;
+		
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+		
+	FHitResult HitResult;
+		
+	const bool bHit = UKismetSystemLibrary::LineTraceSingleForObjects(
+		GetWorld(), 
+		StartLocation, 
+		EndLocation,
+		ObjectTypes,					// Object Type
+		false,							// bTraceComplex
+		{this}, 
+		EDrawDebugTrace::ForDuration,	// <--- Enforces the Debug Drawing
+		HitResult, 
+		true,							// bIgnoreSelf
+		FLinearColor::Red,				// Trace Color
+		FLinearColor::Green,			// Hit Color
+		2.0f							// Draw Duration (Seconds)
+	);
+	
+	if (bHit)
+	{
+		if (HitResult.GetActor()->ActorHasTag(FName("HOOK")) == false)
+		{
+			if (IDamageable* Damageable = Cast<IDamageable>(HitResult.GetActor()))
+			{
+				const int32 Damage = StatsComponent->GetATK();
+				Damageable->TakeDamage(Damage);
+			}
+			return;
+		}
+		
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			if (const UCapsuleComponent* CapComp = GetCapsuleComponent())
+			{
+				MoveComp->SetMovementMode(MOVE_Flying);
+
+				const FVector GoalPosition = HitResult.ImpactPoint;
+
+				HookshotGoalPosition = GoalPosition;
+
+				// Keep movement on the character's X/Z plane.
+				HookshotGoalPosition.Y = GetActorLocation().Y;
+
+				MoveComp->StopMovementImmediately();
+				MoveComp->SetMovementMode(MOVE_Flying);
+				
+				float CapsuleLimits = bIsLookingUp ? CapComp->GetScaledCapsuleHalfHeight() : CapComp->GetScaledCapsuleRadius();
+				CapsuleLimits += 5.0f;
+				
+				FTimerDelegate TimerDelegate;
+				TimerDelegate.BindUObject(this, &APC_C_Prince::TimedHookshotMoveToDestination, CapsuleLimits);
+
+				GetWorldTimerManager().SetTimer(
+					HookshotTimerHandle,
+					TimerDelegate,
+					1.0f / 60.0f,
+					true
+				);
+			}
+		}
+	}
+}
+
+
+void APC_C_Prince::TimedHookshotMoveToDestination(float DistanceThreshold)
+{
+	const FVector ActorLocation = GetActorLocation();
+
+	FVector Direction =
+		HookshotGoalPosition - ActorLocation;
+
+	Direction.Y = 0.0f;
+
+	const float Distance = Direction.Size();
+
+	if (Distance <= DistanceThreshold)
+	{
+		StopHookshot();
+		return;
+	}
+
+	// Movement in the X/Z plane.
+	const FVector NormalizedDirection =
+		Direction.GetSafeNormal();
+
+	// Set a constant pull velocity.
+	GetCharacterMovement()->Velocity =
+		NormalizedDirection * HookshotMoveSpeed;
+}
+
+void APC_C_Prince::StopHookshot()
+{
+	GetWorldTimerManager().ClearTimer(
+		HookshotTimerHandle
+	);
+
+	UCharacterMovementComponent* MoveComp =
+		GetCharacterMovement();
+
+	MoveComp->StopMovementImmediately();
+
+	MoveComp->SetMovementMode(MOVE_Falling);
+}
+
 
 void APC_C_Prince::LedgeUpAnim()
 {
@@ -730,6 +881,7 @@ void APC_C_Prince::ActivateCharacter(AController* NewController)
 			);
 	}
 	
+	// Assign the APC_Control class to the Controller assigned to this Character.
 	Controller = NewController;
 }
 
@@ -764,5 +916,33 @@ void APC_C_Prince::ResetWallLedgeComponentDetection()
 	{
 		WallSlideComponent->ResetOnLanded();
 	}
+}
+
+void APC_C_Prince::SwitchMaskTo(EMaskState MaskValue)
+{
+	if (MaskComponent->GetMaskState() == MaskValue)
+	{
+		MaskValue = EMaskState::EM_None;
+	}
+	
+	MaskState = MaskValue;
+	
+	MaskComponent->SwitchMask(MaskValue);
+	
+	if (const UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		const bool OnGround = MoveComp->IsMovingOnGround();
+
+		const EMovementState NewMoveState = OnGround ? EMovementState::ECS_GroundState : EMovementState::ECS_AirState;
+		
+		SetMovementState(NewMoveState);
+	}
+}
+
+void APC_C_Prince::SetMaskStaticMesh(UStaticMesh* NewMesh)
+{
+	MaskStaticMesh->SetVisibility(true);
+	
+	MaskStaticMesh->SetStaticMesh(NewMesh);
 }
 

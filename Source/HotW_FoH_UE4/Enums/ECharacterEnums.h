@@ -32,8 +32,9 @@ enum class EActionState : uint8
 	EAct_AttackState		= 3 UMETA(DisplayName = "Attacking"),
 	EAct_SideAttackState	= 4 UMETA(DisplayName = "Side Attacking"),
 	EAct_WallJumpState		= 5 UMETA(DisplayName = "Wall Jumping"),
-	EAct_HurtState			= 6 UMETA(DisplayName = "Hurting"),
-	EAct_KOed_State			= 7	UMETA(DisplayName = "Knocked Down")
+	EAct_GlideState			= 6 UMETA(DisplayName = "Gliding"),
+	EAct_HurtState			= 7 UMETA(DisplayName = "Hurting"),
+	EAct_KOed_State			= 8	UMETA(DisplayName = "Knocked Down")
 };
 
 /**
@@ -55,4 +56,17 @@ enum class ESpeedState : uint8
 	ESP_Stop	= 0	UMETA(DisplayName = "Is standing still"),
 	ESP_Walk	= 1	UMETA(DisplayName = "Is walking"),
 	ESP_Run		= 2	UMETA(DisplayName = "Is running")
+};
+
+/**
+ * List of Masks that determines the character mechanics according to which mask is equipped.
+ */
+UENUM(BlueprintType)
+enum class EMaskState : uint8
+{
+	EM_None		= 0 UMETA(DisplayName = "No Mask"),
+	EM_Angel	= 1 UMETA(DisplayName = "Angel Mask"),
+	EM_Ninja	= 2 UMETA(DisplayName = "Ninja Mask"),
+	EM_Diver	= 3 UMETA(DisplayName = "Diver Mask"),
+	EM_Winds	= 4 UMETA(DisplayName = "Winds Mask")
 };
