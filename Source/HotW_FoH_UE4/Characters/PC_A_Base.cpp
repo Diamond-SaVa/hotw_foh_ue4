@@ -3,8 +3,6 @@
 
 #include "PC_A_Base.h"
 
-#include <string>
-
 #include "DrawDebugHelpers.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -187,6 +185,14 @@ void APC_A_Base::SetSpeedState(const ESpeedState NewState)
 	{
 		SetterInterface->SetSpeedState(NewState);
 	}
+}
+
+void APC_A_Base::SetMaskState(const EMaskState NewState)
+{
+}
+
+void APC_A_Base::SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile)
+{
 }
 
 void APC_A_Base::SetBoolGoingUp(const bool IsGoingUp)

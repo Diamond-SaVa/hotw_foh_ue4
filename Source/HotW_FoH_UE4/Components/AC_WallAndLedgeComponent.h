@@ -52,11 +52,15 @@ public:
 	
 	virtual void SetActionState(const EActionState NewState) override;
 	
-	/* Empty Pure Virtual Interface Functions  */
+	/* Empty Pure Virtual Interface Functions from IStateSetters */
 	
 	virtual void SetSpeedState(const ESpeedState NewState) override;
 	
 	virtual void SetBoolGoingUp(const bool IsGoingUp) override;
+	
+	virtual void SetMaskState(const EMaskState NewState) override;
+	
+	virtual void SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile) override;
 	
 	/* Class Functions */
 	

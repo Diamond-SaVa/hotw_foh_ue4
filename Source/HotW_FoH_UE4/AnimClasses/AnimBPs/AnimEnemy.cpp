@@ -40,3 +40,11 @@ void UAnimEnemy::SetBoolGoingUp(const bool IsGoingUp)
 {
 	
 }
+
+void UAnimEnemy::SetMaskState(const EMaskState NewState)
+{
+}
+
+void UAnimEnemy::SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile)
+{
+}

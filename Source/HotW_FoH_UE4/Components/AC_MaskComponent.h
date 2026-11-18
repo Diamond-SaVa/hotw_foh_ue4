@@ -15,7 +15,10 @@ class HOTW_FOH_UE4_API UAC_MaskComponent : public UActorComponent
 
 protected:
 	UPROPERTY(EditAnywhere, Category=AC_MaskComponent)
-	TArray<TSoftObjectPtr<UStaticMesh>> MaskMeshArray; 
+	TArray<TSoftObjectPtr<UStaticMesh>> MaskMeshArray;
+	
+	UPROPERTY(EditAnywhere, Category=AC_MaskComponent)
+	TArray<TSoftObjectPtr<class AA_Projectile>> ProjectilePerMaskArray;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Effects References")
 	class UNiagaraSystem* NS_MaskEffect;

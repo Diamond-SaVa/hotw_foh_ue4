@@ -133,6 +133,14 @@ void ABaseCharacter::SetSpeedState(const ESpeedState NewState)
 {
 }
 
+void ABaseCharacter::SetMaskState(const EMaskState NewState)
+{
+}
+
+void ABaseCharacter::SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile)
+{
+}
+
 void ABaseCharacter::SetBoolGoingUp(const bool IsGoingUp)
 {
 }

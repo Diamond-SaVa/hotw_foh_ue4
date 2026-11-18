@@ -94,6 +94,14 @@ void UAC_WallAndLedgeComponent::SetBoolGoingUp(const bool IsGoingUp)
 	/* KEEP EMPTY */
 }
 
+void UAC_WallAndLedgeComponent::SetMaskState(const EMaskState NewState)
+{
+}
+
+void UAC_WallAndLedgeComponent::SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile)
+{
+}
+
 void UAC_WallAndLedgeComponent::WallDetection()
 {
 	/**/

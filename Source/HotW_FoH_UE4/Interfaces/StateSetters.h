@@ -32,6 +32,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Anim Setters")
 	virtual void SetSpeedState(const ESpeedState NewState) = 0;
 	
+	UFUNCTION(BlueprintCallable, Category="Mask Setters")
+	virtual void SetMaskState(const EMaskState NewState) = 0;
+	
+	UFUNCTION(BlueprintCallable, Category="Projectile Setters")
+	virtual void SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile) = 0;
+	
 	UFUNCTION(BlueprintCallable, Category = "Anim Setters")
 	virtual void SetBoolGoingUp(const bool IsGoingUp) = 0;
 };

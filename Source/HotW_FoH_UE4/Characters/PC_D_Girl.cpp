@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HotW_FoH_UE4/Components/AC_ShootingComponent.h"
+#include "HotW_FoH_UE4/Components/AC_Stats.h"
 #include "HotW_FoH_UE4/Components/AC_WallAndLedgeComponent.h"
 
 // Sets default values
@@ -13,8 +14,6 @@ APC_D_Girl::APC_D_Girl()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	
-	ShootingComponent = CreateDefaultSubobject<UAC_ShootingComponent>(FName("TheShootingComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -140,12 +139,13 @@ void APC_D_Girl::JumpEnd()
 
 void APC_D_Girl::Attack()
 {
-	if (ShootingComponent == nullptr)
+	if (ShootingComponent == nullptr || StatsComponent == nullptr)
 	{
 		return;
 	}
 	
-	ShootingComponent->ShootNextAvailableProjectile();
+	const int32 Dmg = StatsComponent->GetATK();
+	ShootingComponent->ShootAction(Dmg);
 }
 
 void APC_D_Girl::SwitchMaskTo(EMaskState MaskValue)
@@ -160,6 +160,13 @@ void APC_D_Girl::SwitchMaskTo(EMaskState MaskValue)
 	{
 		JumpMaxCount = 1;
 	}
+}
+
+void APC_D_Girl::SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile)
+{
+	Super::SetProjectileOfMask(NewProjectile);
+	
+	ShootingComponent->SetProjectileOfMask(NewProjectile);
 }
 
 void APC_D_Girl::WallJumpAnim()

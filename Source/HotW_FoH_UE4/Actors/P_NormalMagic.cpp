@@ -11,6 +11,8 @@ AP_NormalMagic::AP_NormalMagic()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	ProjectileForMask = EMaskState::EM_None;
 }
 
 // Called when the game starts or when spawned
@@ -26,14 +28,7 @@ void AP_NormalMagic::OnProjectileSweepOverlaps(AActor* ActorHit)
 	
 	if (IDamageable* Damageable = Cast<IDamageable>(ActorHit))
 	{
-		Damageable->TakeDamage(DamageSet);
-		
-		FTimerManager& WorldTimer = GetWorldTimerManager();
-					
-		if (WorldTimer.IsTimerActive(TimerHandle))
-		{
-			WorldTimer.ClearTimer(TimerHandle);
-		}
+		Damageable->TakeDamage(AttackValue);
 	}
 	
 	DeactivateProjectile();

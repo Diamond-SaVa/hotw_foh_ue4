@@ -27,6 +27,9 @@ protected:
 
 	FVector HookshotGoalPosition = FVector::ZeroVector;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Character Components")
+	class UAC_ShootingComponent* ShootingComponent;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Mask Component")
 	UStaticMeshComponent* MaskStaticMesh;
 	

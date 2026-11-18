@@ -10,10 +10,6 @@ UCLASS()
 class HOTW_FOH_UE4_API APC_D_Girl : public APC_C_Prince
 {
 	GENERATED_BODY()
-	
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="Character Components")
-	class UAC_ShootingComponent* ShootingComponent;
 
 public:	
 	// Sets default values for this character's properties
@@ -41,6 +37,8 @@ public:
 	virtual void Attack() override;
 	
 	virtual void SwitchMaskTo(EMaskState MaskValue) override;
+	
+	virtual void SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile) override;
 	
 	/* Actions to Bind */
 	

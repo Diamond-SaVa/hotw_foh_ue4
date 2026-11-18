@@ -14,6 +14,7 @@ AA_Projectile::AA_Projectile()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("TheProjectileMovement"));
+	
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TheStaticMesh"));
 	
 	SetRootComponent(StaticMesh);
@@ -23,6 +24,14 @@ AA_Projectile::AA_Projectile()
 void AA_Projectile::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	StaticMesh->SetVisibility(false);
+	
+	ProjectileMovement->Deactivate();
+	
+	ProjectileIsReady = true;
+	
+	SetActorTickEnabled(false);
 }
 
 void AA_Projectile::OnProjectileSweepOverlaps(AActor* ActorHit)
@@ -44,13 +53,19 @@ void AA_Projectile::Tick(float DeltaTime)
 		
 		constexpr ECollisionChannel PawnHitChannel = ECollisionChannel::ECC_Visibility;
 		
+		FQuat Rotator = FQuat::Identity;
+		
 		FCollisionShape HitShape = FCollisionShape::MakeSphere(32.0f);
 		
 		FCollisionQueryParams CollisionParams;
 		CollisionParams.AddIgnoredActor(this);
+		if (ProjectileOwner.IsValid())
+		{
+			CollisionParams.AddIgnoredActor(ProjectileOwner.Get());
+		}
 		
 		const bool bHitPawn = World->SweepSingleByChannel(Hit, SweepLocation, SweepLocation,
-			FQuat::Identity, PawnHitChannel, HitShape, CollisionParams);
+			Rotator, PawnHitChannel, HitShape, CollisionParams);
 		
 		if (bHitPawn == true)
 		{
@@ -64,14 +79,22 @@ void AA_Projectile::Tick(float DeltaTime)
 }
 
 void AA_Projectile::ActivateProjectile(AActor* ActorSource, const float MovementSpeedChange,
-	const float BounceSpeedChange, const float GravityChange, const float LifeTime)
+	const float NewAttackValue, const float GravityChange, const float LifeTime)
 {
 	if (ActorSource == nullptr || ProjectileMovement == nullptr)
 	{
 		return;
 	}
 	
-	ProjectileOwner = ActorSource;
+	if (ProjectileOwner != ActorSource)
+	{
+		ProjectileOwner = ActorSource;
+	}
+	
+	if (AttackValue != NewAttackValue)
+	{
+		AttackValue = NewAttackValue;
+	}
 	
 	StaticMesh->SetVisibility(true);
 	
@@ -84,14 +107,14 @@ void AA_Projectile::ActivateProjectile(AActor* ActorSource, const float Movement
 	ProjectileMovement->Velocity.X = ActorFwdDirection * MovementSpeedChange;
 	ProjectileMovement->ProjectileGravityScale = GravityChange;
 	
-	ProjectileIsActive = 1;
+	ProjectileIsReady = false;
 	
 	SetActorTickEnabled(true);
 	
 	FTimerManager& WorldTimer = GetWorldTimerManager();
 					
 	WorldTimer.SetTimer(
-		TimerHandle,              // The tracking handle
+		LifeTimerHandle,              // The tracking handle
 		this,                     // The context object running the function
 		&AA_Projectile::DeactivateProjectile, // The address of your function
 		LifeTime,                     // Time in seconds between executions
@@ -106,11 +129,18 @@ void AA_Projectile::DeactivateProjectile()
 		return;
 	}
 	
+	FTimerManager& WorldTimer = GetWorldTimerManager();
+					
+	if (WorldTimer.IsTimerActive(LifeTimerHandle) == true)
+	{
+		WorldTimer.ClearTimer(LifeTimerHandle);
+	}
+	
 	StaticMesh->SetVisibility(false);
 	
 	ProjectileMovement->Deactivate();
 	
-	ProjectileIsActive = 0;
+	ProjectileIsReady = true;
 	
 	SetActorTickEnabled(false);
 }

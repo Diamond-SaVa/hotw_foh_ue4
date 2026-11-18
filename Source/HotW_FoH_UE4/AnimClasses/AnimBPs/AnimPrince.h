@@ -55,4 +55,8 @@ public:
 	virtual void SetSpeedState(const ESpeedState NewState) override;
 	
 	virtual void SetBoolGoingUp(const bool IsGoingUp) override;
+	
+	virtual void SetMaskState(const EMaskState NewState) override;
+	
+	virtual void SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile) override;
 };

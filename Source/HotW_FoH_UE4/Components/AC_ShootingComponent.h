@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "HotW_FoH_UE4/Interfaces/StateSetters.h"
 #include "AC_ShootingComponent.generated.h"
 
 
@@ -18,7 +19,7 @@ struct FProjectileData
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
 	// Sets the Bounce speed for the next projectile 
-	float BounceSpeed = 500.0f;
+	float LifeTime = 2.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
 	// Sets the Gravity Scale for the next projectile 
@@ -26,7 +27,7 @@ struct FProjectileData
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class HOTW_FOH_UE4_API UAC_ShootingComponent : public UActorComponent
+class HOTW_FOH_UE4_API UAC_ShootingComponent : public UActorComponent, public IStateSetters
 {
 	GENERATED_BODY()
 	
@@ -34,8 +35,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
 	TArray<AActor*> ProjectileArray;
 	
-	UPROPERTY(EditAnywhere, Category="Projectiles")
-	TSoftClassPtr<class AA_Projectile> ClassOfProjectile;
+	UPROPERTY(EditAnywhere, Category = "Character Load Data")
+	TArray<TSoftClassPtr<class AA_Projectile>> ClassProjectileByMaskArray;
 
 	// Timer for the Shooting Restart Function
 	FTimerHandle CooldownTimerHandle;
@@ -44,7 +45,9 @@ protected:
 	FProjectileData NextProjectileData;
 	
 	// 0 if it can shoot, 1 if it cannot.
-	int32 CanShoot;
+	bool bCanShoot;
+	
+	EMaskState CurrentMaskFilter;
 	
 public:
 	// Sets default values for this component's properties
@@ -57,13 +60,29 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 public:
-	void SpawnNextProjectile(UWorld* World);
+	void ShootAction(int32 AttackValue);
 	
-	void ShootNextAvailableProjectile();
+	void SpawnNextProjectileIfNeeded(UWorld* World, int32 AttackValue);
+	
+	void ShootNextAvailableProjectile(UWorld* World, AActor* NextProjectile, int32 AttackValue);
 	
 	void RestartShoot();
 	
+	/* State Setters Interface Functions */
+	
+	virtual void SetMaskState(const EMaskState NewState) override;
+	
+	virtual void SetActionState(const EActionState NewState) override;
+	
+	virtual void SetBoolGoingUp(const bool IsGoingUp) override;
+	
+	virtual void SetMovementState(const EMovementState NewState) override;
+	
+	virtual void SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile) override;
+	
+	virtual void SetSpeedState(const ESpeedState NewState) override;
+	
 	/* Getters and Setters */
 	
-	FORCEINLINE bool GetCanShoot() const { return CanShoot == 0; }
+	FORCEINLINE bool GetCanShoot() const { return bCanShoot; }
 };

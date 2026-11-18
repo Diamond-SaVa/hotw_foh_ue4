@@ -59,3 +59,11 @@ void UAnimPrince::SetBoolGoingUp(const bool IsGoingUp)
 {
 	bAnimGoingUp = IsGoingUp;
 }
+
+void UAnimPrince::SetMaskState(const EMaskState NewState)
+{
+}
+
+void UAnimPrince::SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile)
+{
+}

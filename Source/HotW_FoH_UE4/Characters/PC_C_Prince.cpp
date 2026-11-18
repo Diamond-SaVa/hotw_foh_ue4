@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HotW_FoH_UE4/Components/AC_MaskComponent.h"
+#include "HotW_FoH_UE4/Components/AC_ShootingComponent.h"
 #include "HotW_FoH_UE4/Components/AC_Stats.h"
 #include "Niagara/Public/NiagaraFunctionLibrary.h"
 #include "HotW_FoH_UE4/Components/AC_WallAndLedgeComponent.h"
@@ -19,6 +20,8 @@ APC_C_Prince::APC_C_Prince()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	
+	ShootingComponent = CreateDefaultSubobject<UAC_ShootingComponent>(FName("TheShootingComponent"));
 	
 	MaskStaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("MaskStaticMesh"));
 	if (MaskStaticMesh != nullptr)
@@ -920,14 +923,19 @@ void APC_C_Prince::ResetWallLedgeComponentDetection()
 
 void APC_C_Prince::SwitchMaskTo(EMaskState MaskValue)
 {
-	if (MaskComponent->GetMaskState() == MaskValue)
+	if (IsValid(MaskComponent) == true)
 	{
-		MaskValue = EMaskState::EM_None;
+		const EMaskState MaskComponentState = MaskComponent->GetMaskState();
+	
+		if (MaskComponentState == MaskValue)
+		{
+			MaskValue = EMaskState::EM_None;
+		}
+	
+		MaskState = MaskValue;
+	
+		MaskComponent->SwitchMask(MaskValue);
 	}
-	
-	MaskState = MaskValue;
-	
-	MaskComponent->SwitchMask(MaskValue);
 	
 	if (const UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
