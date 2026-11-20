@@ -27,16 +27,16 @@ struct FProjectileData
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class HOTW_FOH_UE4_API UAC_ShootingComponent : public UActorComponent, public IStateSetters
+class HOTW_FOH_UE4_API UAC_ShootingComponent : public UActorComponent
 {
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
+	UPROPERTY(VisibleAnywhere, Transient)
 	TArray<AActor*> ProjectileArray;
 	
 	UPROPERTY(EditAnywhere, Category = "Character Load Data")
-	TArray<TSoftClassPtr<class AA_Projectile>> ClassProjectileByMaskArray;
+	TArray<TSoftClassPtr<AA_Projectile>> ClassProjectileByMaskArray;
 
 	// Timer for the Shooting Restart Function
 	FTimerHandle CooldownTimerHandle;
@@ -44,8 +44,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
 	FProjectileData NextProjectileData;
 	
+	UPROPERTY(Transient)
+	TSubclassOf<AA_Projectile> LoadedProjectileClass;
+	
+	UPROPERTY(EditAnywhere, Category="Projectiles")
+	uint8 MaxShots = 4;
+	
 	// 0 if it can shoot, 1 if it cannot.
-	bool bCanShoot;
+	bool bCanShoot = true;
 	
 	EMaskState CurrentMaskFilter;
 	
@@ -64,23 +70,11 @@ public:
 	
 	void SpawnNextProjectileIfNeeded(UWorld* World, int32 AttackValue);
 	
-	void ShootNextAvailableProjectile(UWorld* World, AActor* NextProjectile, int32 AttackValue);
+	void ShootNextAvailableProjectile(const UWorld* World, AActor* NextProjectile, int32 AttackValue);
 	
 	void RestartShoot();
 	
-	/* State Setters Interface Functions */
-	
-	virtual void SetMaskState(const EMaskState NewState) override;
-	
-	virtual void SetActionState(const EActionState NewState) override;
-	
-	virtual void SetBoolGoingUp(const bool IsGoingUp) override;
-	
-	virtual void SetMovementState(const EMovementState NewState) override;
-	
-	virtual void SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile) override;
-	
-	virtual void SetSpeedState(const ESpeedState NewState) override;
+	void SetMaskAndProjectile(EMaskState NewMaskState);
 	
 	/* Getters and Setters */
 	

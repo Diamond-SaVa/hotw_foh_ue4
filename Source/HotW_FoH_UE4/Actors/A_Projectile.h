@@ -66,5 +66,7 @@ public:
 	
 	/* Getters and Setters */
 	
+	FORCEINLINE EMaskState GetMaskType() const { return ProjectileForMask; }
+	
 	FORCEINLINE void SetProjectileIsActive(const bool IsActive) { ProjectileIsReady = IsActive; }
 };

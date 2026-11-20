@@ -923,18 +923,23 @@ void APC_C_Prince::ResetWallLedgeComponentDetection()
 
 void APC_C_Prince::SwitchMaskTo(EMaskState MaskValue)
 {
+	const EMaskState MaskComponentState = MaskComponent->GetMaskState();
+	
+	if (MaskComponentState == MaskValue)
+	{
+		MaskValue = EMaskState::EM_None;
+	}
+	
+	MaskState = MaskValue;
+	
 	if (IsValid(MaskComponent) == true)
 	{
-		const EMaskState MaskComponentState = MaskComponent->GetMaskState();
-	
-		if (MaskComponentState == MaskValue)
-		{
-			MaskValue = EMaskState::EM_None;
-		}
-	
-		MaskState = MaskValue;
-	
 		MaskComponent->SwitchMask(MaskValue);
+	}
+	
+	if (IsValid(ShootingComponent) == true)
+	{
+		ShootingComponent->SetMaskAndProjectile(MaskValue);
 	}
 	
 	if (const UCharacterMovementComponent* MoveComp = GetCharacterMovement())

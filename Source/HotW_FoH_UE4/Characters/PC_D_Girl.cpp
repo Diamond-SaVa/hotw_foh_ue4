@@ -139,7 +139,7 @@ void APC_D_Girl::JumpEnd()
 
 void APC_D_Girl::Attack()
 {
-	if (ShootingComponent == nullptr || StatsComponent == nullptr)
+	if (IsValid(ShootingComponent) == false || IsValid(StatsComponent) == false)
 	{
 		return;
 	}
@@ -165,8 +165,6 @@ void APC_D_Girl::SwitchMaskTo(EMaskState MaskValue)
 void APC_D_Girl::SetProjectileOfMask(const TSoftClassPtr<class AA_Projectile>& NewProjectile)
 {
 	Super::SetProjectileOfMask(NewProjectile);
-	
-	ShootingComponent->SetProjectileOfMask(NewProjectile);
 }
 
 void APC_D_Girl::WallJumpAnim()
