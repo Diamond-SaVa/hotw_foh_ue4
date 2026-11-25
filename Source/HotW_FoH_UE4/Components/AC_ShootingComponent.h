@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "HotW_FoH_UE4/Enums/ECharacterEnums.h"
 #include "AC_ShootingComponent.generated.h"
+
+class AA_Projectile;
 
 USTRUCT(BlueprintType)
 struct FProjectileData
@@ -22,6 +25,9 @@ struct FProjectileData
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
 	// Sets the Gravity Scale for the next projectile 
 	float GravityChange = 0.0f;
+	
+	UPROPERTY(EditAnywhere, Category="Projectiles")
+	float LifeTime;
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -30,6 +36,13 @@ class HOTW_FOH_UE4_API UAC_ShootingComponent : public UActorComponent
 	GENERATED_BODY()
 	
 protected:
+	
+	UPROPERTY(EditAnywhere, Category="Projectiles")
+	TArray<TSoftClassPtr<AA_Projectile>> ClassProjectileByMaskArray;
+	
+	UPROPERTY(VisibleAnywhere, Category="Projectiles")
+	TSubclassOf<AA_Projectile> LoadedProjectileClass;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
 	TArray<AActor*> ProjectileArray;
 
@@ -39,9 +52,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Projectiles")
 	FProjectileData NextProjectileData;
 	
-	// 0 if it can shoot, 1 if it cannot.
-	int32 CanShoot;
+	UPROPERTY(VisibleAnywhere, Category="Projectiles")
+	EMaskState CurrentMaskFilter;
 	
+	UPROPERTY(EditAnywhere, Category="Projectiles")
+	uint8 MaxShots = 4;
+	
+	// 0 if it can shoot, 1 if it cannot.
+	bool bCanShoot;
+
 public:
 	// Sets default values for this component's properties
 	UAC_ShootingComponent();
@@ -53,7 +72,13 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 public:
-	void ShootNextAvailableProjectile();
+	void ShootNextAvailableProjectile(const UWorld* World, AActor* NextProjectile, int32 AttackValue);
 	
+	void ShootAction(int32 AttackValue);
+
 	void RestartShoot();
+	
+	void SetMaskAndProjectile(EMaskState NewMaskState);
+
+	void SpawnNextProjectileIfNeeded(UWorld* World, int32 AttackValue);
 };
