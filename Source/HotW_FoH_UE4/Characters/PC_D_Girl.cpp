@@ -100,11 +100,14 @@ void APC_D_Girl::LedgeGrabStart()
 	Super::LedgeGrabStart();
 }
 
+<<<<<<< Updated upstream
 void APC_D_Girl::WallSlideStart()
 {
 	Super::WallSlideStart();
 }
 
+=======
+>>>>>>> Stashed changes
 void APC_D_Girl::WallJumpAnim()
 {
 	if (ActionState != EActionState::EAct_NilState && MovementState != EMovementState::ECS_WallState)

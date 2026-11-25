@@ -59,3 +59,10 @@ void UAnimPrince::SetBoolGoingUp(const bool IsGoingUp)
 {
 	bAnimGoingUp = IsGoingUp;
 }
+<<<<<<< Updated upstream
+=======
+
+void UAnimPrince::SetMaskState(const EMaskState NewState)
+{
+}
+>>>>>>> Stashed changes

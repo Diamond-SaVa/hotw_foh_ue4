@@ -107,6 +107,11 @@ protected:
 	// Class function to manage Speed State changes with anim instance as well as the speed the character is going.
 	virtual void SetSpeedState(const ESpeedState NewState) override;
 	
+<<<<<<< Updated upstream
+=======
+	virtual void SetMaskState(const EMaskState NewState) override;
+	
+>>>>>>> Stashed changes
 	virtual void SetBoolGoingUp(const bool IsGoingUp) override;
 	
 	/* Public Actions that AI Trees are able to reach */

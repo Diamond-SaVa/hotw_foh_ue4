@@ -501,6 +501,156 @@ void APC_C_Prince::Attack()
 	Super::Attack();
 }
 
+<<<<<<< Updated upstream
+=======
+void APC_C_Prince::MaskAction()
+{
+	switch(GetMaskComponent()->GetMaskState())
+	{
+	case EMaskState::EM_Angel:
+		return;
+	case EMaskState::EM_Ninja:
+		HookshotTrace();
+		return;
+	case EMaskState::EM_Diver:
+		HookshotTrace();
+		return;
+	case EMaskState::EM_Winds:
+		HookshotTrace();
+		return;
+	default:
+		break;
+	}
+}
+
+void APC_C_Prince::PlayHookshotAnimation()
+{
+	// PlayAnimMontage_Safe()
+}
+
+void APC_C_Prince::HookshotTrace()
+{
+	if (MovementState == EMovementState::ECS_WallState || MovementState == EMovementState::ECS_LedgeState)
+	{
+		return;
+	}
+	
+	const FVector StartLocation = GetActorLocation();
+	
+	const FVector HookDirection = bIsLookingUp ? 
+	(GetActorUpVector() * HookshotDistance) : (GetActorForwardVector() * HookshotDistance);  
+
+	const FVector EndLocation = StartLocation + HookDirection;
+		
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_WorldStatic));
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+		
+	FHitResult HitResult;
+		
+	const bool bHit = UKismetSystemLibrary::LineTraceSingleForObjects(
+		GetWorld(), 
+		StartLocation, 
+		EndLocation,
+		ObjectTypes,					// Object Type
+		false,							// bTraceComplex
+		{this}, 
+		EDrawDebugTrace::ForDuration,	// <--- Enforces the Debug Drawing
+		HitResult, 
+		true,							// bIgnoreSelf
+		FLinearColor::Red,				// Trace Color
+		FLinearColor::Green,			// Hit Color
+		2.0f							// Draw Duration (Seconds)
+	);
+	
+	if (bHit)
+	{
+		if (HitResult.GetActor()->ActorHasTag(FName("HOOK")) == false)
+		{
+			if (IDamageable* Damageable = Cast<IDamageable>(HitResult.GetActor()))
+			{
+				const int32 Damage = StatsComponent->GetATK();
+				Damageable->TakeDamage(Damage);
+			}
+			return;
+		}
+		
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			if (const UCapsuleComponent* CapComp = GetCapsuleComponent())
+			{
+				MoveComp->SetMovementMode(MOVE_Flying);
+
+				const FVector GoalPosition = HitResult.ImpactPoint;
+
+				HookshotGoalPosition = GoalPosition;
+
+				// Keep movement on the character's X/Z plane.
+				HookshotGoalPosition.Y = GetActorLocation().Y;
+
+				MoveComp->StopMovementImmediately();
+				MoveComp->SetMovementMode(MOVE_Flying);
+				
+				float CapsuleLimits = bIsLookingUp ? CapComp->GetScaledCapsuleHalfHeight() : CapComp->GetScaledCapsuleRadius();
+				CapsuleLimits += 5.0f;
+				
+				FTimerDelegate TimerDelegate;
+				TimerDelegate.BindUObject(this, &APC_C_Prince::TimedHookshotMoveToDestination, CapsuleLimits);
+
+				GetWorldTimerManager().SetTimer(
+					HookshotTimerHandle,
+					TimerDelegate,
+					1.0f / 60.0f,
+					true
+				);
+			}
+		}
+	}
+}
+
+
+void APC_C_Prince::TimedHookshotMoveToDestination(float DistanceThreshold)
+{
+	const FVector ActorLocation = GetActorLocation();
+
+	FVector Direction =
+		HookshotGoalPosition - ActorLocation;
+
+	Direction.Y = 0.0f;
+
+	const float Distance = Direction.Size();
+
+	if (Distance <= DistanceThreshold)
+	{
+		StopHookshot();
+		return;
+	}
+
+	// Movement in the X/Z plane.
+	const FVector NormalizedDirection =
+		Direction.GetSafeNormal();
+
+	// Set a constant pull velocity.
+	GetCharacterMovement()->Velocity =
+		NormalizedDirection * HookshotMoveSpeed;
+}
+
+void APC_C_Prince::StopHookshot()
+{
+	GetWorldTimerManager().ClearTimer(
+		HookshotTimerHandle
+	);
+
+	UCharacterMovementComponent* MoveComp =
+		GetCharacterMovement();
+
+	MoveComp->StopMovementImmediately();
+
+	MoveComp->SetMovementMode(MOVE_Falling);
+}
+
+
+>>>>>>> Stashed changes
 void APC_C_Prince::LedgeUpAnim()
 {
 	if (MovementState == EMovementState::ECS_LedgeState && 

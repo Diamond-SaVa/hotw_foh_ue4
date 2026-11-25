@@ -93,6 +93,13 @@ void UAC_WallAndLedgeComponent::SetBoolGoingUp(const bool IsGoingUp)
 	/* KEEP EMPTY */
 }
 
+<<<<<<< Updated upstream
+=======
+void UAC_WallAndLedgeComponent::SetMaskState(const EMaskState NewState)
+{
+}
+
+>>>>>>> Stashed changes
 void UAC_WallAndLedgeComponent::WallDetection()
 {
 	/**/

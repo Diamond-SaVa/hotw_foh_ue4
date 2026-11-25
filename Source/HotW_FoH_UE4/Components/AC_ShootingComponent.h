@@ -6,6 +6,12 @@
 #include "Components/ActorComponent.h"
 #include "AC_ShootingComponent.generated.h"
 
+<<<<<<< Updated upstream
+=======
+
+class AA_Projectile;
+
+>>>>>>> Stashed changes
 USTRUCT(BlueprintType)
 struct FProjectileData
 {

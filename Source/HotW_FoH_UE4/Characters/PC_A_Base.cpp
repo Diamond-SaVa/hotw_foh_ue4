@@ -184,6 +184,13 @@ void APC_A_Base::SetSpeedState(const ESpeedState NewState)
 	}
 }
 
+<<<<<<< Updated upstream
+=======
+void APC_A_Base::SetMaskState(const EMaskState NewState)
+{
+}
+
+>>>>>>> Stashed changes
 void APC_A_Base::SetBoolGoingUp(const bool IsGoingUp)
 {
 	UAnimInstance* AnimBP = GetMesh()->GetAnimInstance();

@@ -131,6 +131,23 @@ public:
 	
 	virtual void Attack() override;
 	
+<<<<<<< Updated upstream
+=======
+	virtual void MaskAction();
+	
+	/* Ninja Mask Abilities */
+	
+	void PlayHookshotAnimation();
+	
+	void HookshotTrace();
+	
+	void TimedHookshotMoveToDestination(float DistanceThreshold);
+	
+	void StopHookshot();
+	
+	/*  */
+	
+>>>>>>> Stashed changes
 	virtual void LedgeUpAnim();
 	
 	virtual void LedgeDownAnim();

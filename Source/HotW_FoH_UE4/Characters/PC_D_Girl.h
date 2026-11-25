@@ -36,8 +36,11 @@ public:
 	
 	virtual void LedgeGrabStart() override;
 	
+<<<<<<< Updated upstream
 	virtual void WallSlideStart() override;
 	
+=======
+>>>>>>> Stashed changes
 	/* Actions to Bind */
 	
 	/* Functions Unique to Girl Character */
