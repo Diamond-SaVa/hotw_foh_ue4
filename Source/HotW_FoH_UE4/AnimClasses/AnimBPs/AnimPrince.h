@@ -55,9 +55,6 @@ public:
 	virtual void SetSpeedState(const ESpeedState NewState) override;
 	
 	virtual void SetBoolGoingUp(const bool IsGoingUp) override;
-<<<<<<< Updated upstream
-=======
-	
+
 	virtual void SetMaskState(const EMaskState NewState) override;
->>>>>>> Stashed changes
 };
