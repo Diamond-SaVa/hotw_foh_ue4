@@ -22,7 +22,6 @@ class HOTW_FOH_UE4_API IPCInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void RegisterCharacterToControllerArray(AActor* PlayableCharacter, const int32 CharacterID) = 0;
 	
 	virtual void CheckIfCouldSwitchOnLanded() = 0;
 };

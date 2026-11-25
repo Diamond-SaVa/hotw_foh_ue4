@@ -25,7 +25,7 @@ protected:
 	int32 RecoveryEP = 3;
 	
 	// Max HP calculated with the GameInstance's HealthLevel variable
-	UPROPERTY(Category = "Player Data", VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Category = "Player Data", EditAnywhere, BlueprintReadOnly)
 	int32 MaxHP = 30;
 	
 	// HP that is always changing when being hit or healing, clamped to MaxHP
@@ -33,12 +33,17 @@ protected:
 	int32 HP = 30;
 	
 	// Max EP calculated with the GameInstance's EnergyLevel variable
-	UPROPERTY(Category = "Player Data", VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Category = "Player Data", EditAnywhere, BlueprintReadOnly)
 	int32 MaxEP = 30;
 	
 	// EP that is always changing when being hit or healing, clamped to MaxEP
 	UPROPERTY(Category = "Player Data", VisibleAnywhere, BlueprintReadOnly)
 	int32 EP = 30;
+	
+	// ATK Points used to deal damage to opposing Characters
+	UPROPERTY(Category = "Player Data", EditAnywhere, BlueprintReadOnly, 
+		meta=(ClampMin = "1", UIMin = "1", ClampMax = "3", UIMax = "3"))
+	int32 ATK = 1;
 	
 	// Handler for managing Recovery Timer
 	UPROPERTY()
@@ -71,6 +76,10 @@ public:
 	// Make the character heal EP
 	void SpendEP(int32 Value);
 	
+	FORCEINLINE int32 GetHP() const { return HP; }
+	
+	FORCEINLINE int32 GetEP() const { return EP; }
+	
 	// Make the character Heal HP
 	FORCEINLINE void HealHP(int32 Value) { HP = FMath::Clamp(HP + Value, 0, MaxHP); }
 	
@@ -82,4 +91,10 @@ public:
 	
 	// Change the rate at which the character recovers EP
 	FORCEINLINE void SetRecoveryRate(float NewRate) { RecoveryInterval = NewRate; }
+	
+	// Obtains the currently set ATK points
+	FORCEINLINE int32 GetATK() const { return ATK; }
+	
+	// Obtains the currently set ATK points, plus a modifier
+	FORCEINLINE int32 GetATK(const bool bAttackModifier) const { return bAttackModifier ? ATK + 1 : ATK; }
 };

@@ -48,6 +48,8 @@ public:
 	
 	virtual void SetActiveCharacter(const int32 NewSlot, AActor* NewCharacter) override;
 	
+	virtual void SwitchCharacterID(const int32 NewSlot) override;
+	
 	virtual void LoadLevel(TSoftObjectPtr<UWorld> NewLevel) override;
 	
 	virtual void UnloadLevel() override;

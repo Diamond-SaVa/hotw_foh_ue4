@@ -5,7 +5,6 @@
 
 #include "HotW_FoH_UE4/Actors/A_Projectile.h"
 
-
 // Sets default values for this component's properties
 UAC_ShootingComponent::UAC_ShootingComponent()
 {
@@ -24,6 +23,23 @@ void UAC_ShootingComponent::BeginPlay()
 
 	// ...
 	
+	UE_LOG(LogTemp, Warning,
+		TEXT("Owner: %s | Component: %p | Classes: %d"),
+		*GetNameSafe(GetOwner()),
+		this,
+		ClassProjectileByMaskArray.Num()
+	);
+	
+	if (ClassProjectileByMaskArray.IsValidIndex(0))
+	{
+		LoadedProjectileClass = ClassProjectileByMaskArray[0].LoadSynchronous();
+
+		UE_LOG(LogTemp, Warning,
+			TEXT("[%s] Loaded Projectile Class: %s"),
+			*GetNameSafe(GetOwner()),
+			*GetNameSafe(LoadedProjectileClass.Get()));
+	}
+	
 }
 
 void UAC_ShootingComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -41,49 +57,133 @@ void UAC_ShootingComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
-void UAC_ShootingComponent::ShootNextAvailableProjectile()
+void UAC_ShootingComponent::ShootAction(int32 AttackValue)
 {
-	if (CanShoot == 1 || ProjectileArray.Num() == 0)
+	UWorld* World = GetWorld();
+	if (IsValid(World) == false || bCanShoot == false)
 	{
 		return;
 	}
+	
+	SpawnNextProjectileIfNeeded(World, AttackValue);
+}
 
-	for (AActor* Projectile : ProjectileArray)
+void UAC_ShootingComponent::SpawnNextProjectileIfNeeded(UWorld* World, int32 AttackValue)
+{
+	// Set the amount of projectiles in the array
+	const int32 ArrayItemCount = ProjectileArray.Num();
+
+	// If there are projectiles in the array,
+	if (ArrayItemCount > 0)
 	{
-		if (IsValid(Projectile) == false)
+		int32 Count = 0;
+		// get each AActor in the array.
+		for (AActor* ProjectileActor : ProjectileArray)
 		{
-			return;
-		}
-		
-		if (AA_Projectile* Shoot = Cast<AA_Projectile>(Projectile))
-		{
-			if (Shoot->ProjectileIsActive == 0)
+			if (Count >= MaxShots)
 			{
-				Shoot->ActivateProjectile(GetOwner(), NextProjectileData.MovementSpeed, 
-					NextProjectileData.BounceSpeed, NextProjectileData.GravityChange);
-				
-				CanShoot = 1;
-				
-				if (UWorld* World = GetWorld())
-				{
-					FTimerManager& WorldTimer = World->GetTimerManager();
-					
-					WorldTimer.SetTimer(
-						CooldownTimerHandle,              // The tracking handle
-						this,                     // The context object running the function
-						&UAC_ShootingComponent::RestartShoot, // The address of your function
-						0.5f,                     // Time in seconds between executions
-						false                     // True to loop continuously, False to run only once
-					);
-				}
-				
 				return;
 			}
+			
+			// Check if it uses the IProjectiles Interface 
+			if (IProjectiles* ProjectileInterface = Cast<IProjectiles>(ProjectileActor))
+			{
+				// Check the EMaskState value of the projectile
+				const EMaskState ProjectileMaskType = ProjectileInterface->GetProjectileForMaskType();
+				
+				// Compare it with the Mask we have equipped
+				if (ProjectileMaskType == CurrentMaskFilter)
+				{
+					if (ProjectileInterface->GetProjectileIsReady() == true)
+					{
+						// Shoot the returned projectile and end the function and for-loop
+						ShootNextAvailableProjectile(World, ProjectileActor, AttackValue);
+						return;
+					}
+					
+					++Count;
+				}
+			}
+		}
+	};
+	
+	// In case of class's invalidity, stop the function from spawning an invalid object
+	if (IsValid(LoadedProjectileClass) == false)
+	{
+		return;
+	}
+	
+	// Otherwise, if the array doesn't feature any projectiles in the array, or
+	if (AActor* ANewProjectile = World->SpawnActor(LoadedProjectileClass))
+	{
+		if (AA_Projectile* ProjectileData = Cast<AA_Projectile>(LoadedProjectileClass.Get()))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ProjectileData read from LoadedProjectileClass.Get()"));
+			
+			const EMaskState ProjectileMaskState = ProjectileData->GetProjectileForMaskType();
+		
+			if (CurrentMaskFilter != ProjectileMaskState)
+			{
+				return;
+			}
+		}
+		
+		ProjectileArray.Add(ANewProjectile);
+		ShootNextAvailableProjectile(World, ANewProjectile, AttackValue);
+	}
+}
+
+void UAC_ShootingComponent::ShootNextAvailableProjectile(const UWorld* World, AActor* NextProjectile, int32 AttackValue)
+{
+	// Verify the NextProjectile is not nullptr
+	if (NextProjectile == nullptr)
+	{
+		return;
+	}
+	
+	if (IProjectiles* ProjectileInterface = Cast<IProjectiles>(NextProjectile))
+	{
+		const EMaskState ProjectileMask = ProjectileInterface->GetProjectileForMaskType();
+		const bool bProjectileAvailable = ProjectileInterface->GetProjectileIsReady();
+				
+		if (CurrentMaskFilter == ProjectileMask && bProjectileAvailable == true)
+		{
+			ProjectileInterface->ActivateProjectile(GetOwner(), NextProjectileData.MovementSpeed, 
+				AttackValue, NextProjectileData.GravityChange, NextProjectileData.LifeTime);
+				
+			bCanShoot = false;
+				
+			FTimerManager& WorldTimer = World->GetTimerManager();
+					
+			WorldTimer.SetTimer(
+				CooldownTimerHandle,					// The tracking handle
+				this,									// The context object running the function
+				&UAC_ShootingComponent::RestartShoot,	// The address of your function
+				0.5f,									// Time in seconds between executions
+				false									// True to loop continuously, False to run only once
+			);
 		}
 	}
 }
 
 void UAC_ShootingComponent::RestartShoot()
 {
-	CanShoot = 0;
+	bCanShoot = true;
+}
+
+void UAC_ShootingComponent::SetMaskAndProjectile(EMaskState NewMaskState)
+{
+	CurrentMaskFilter = NewMaskState;
+	
+	const uint8 MaskIndex = static_cast<uint8>(NewMaskState);
+	
+	if (ClassProjectileByMaskArray.IsValidIndex(MaskIndex))
+	{
+		LoadedProjectileClass = ClassProjectileByMaskArray[MaskIndex].LoadSynchronous();
+
+		UE_LOG(LogTemp, Warning,
+			TEXT("[%s] Loaded Projectile Class: %s"),
+			*GetNameSafe(GetOwner()),
+			*GetNameSafe(LoadedProjectileClass.Get()));
+	}
 }

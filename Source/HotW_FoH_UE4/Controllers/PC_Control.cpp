@@ -338,23 +338,4 @@ void APC_Control::SendCharacterToManager()
 	{
 		Manager->SetActiveCharacter(CurrentCharacterSlot, PCharacterArray[CurrentCharacterSlot].Get());
 	}
-<<<<<<< Updated upstream
 }
-=======
-	
-	ActivateSwitchBlockTimer();
-}
-
-void APC_Control::RegisterCharacterToControllerArray(AActor* PlayableCharacter, const int32 CharacterID)
-{
-	if (APC_C_Prince* PrinceCharacter = Cast<APC_C_Prince>(PlayableCharacter))
-	{
-		CharacterSetUpFromBeginPlay(PrinceCharacter, CharacterID);
-	}
-}
-
-void APC_Control::CheckIfCouldSwitchOnLanded()
-{
-	SwitchCharacterFromLanding();
-}
->>>>>>> Stashed changes

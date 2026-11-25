@@ -27,13 +27,27 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation Assets")
 	UAnimMontage* AM_Damage;
 	
-	// Attack Count
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack Properties")
-	int32 AtkCounter;
+	// Animation Montage for Character's Damage Animations
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation Assets")
+	UAnimMontage* AM_KO;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Material Assets")
+	UMaterialInstance* MI_CharacterMaterial;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Material Assets")
+	UMaterialInstanceDynamic* MID_CharacterMaterial;
+	
+	// Attack Trace Duration
+	UPROPERTY(EditAnywhere, Category = "Attack Properties")
+	float DrawDamageTraceDuration = 1.0f;
 	
 	// Attack Count
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Attack Properties")
-	int32 AtkCounterMax = 1;
+	UPROPERTY(VisibleAnywhere, Category = "Attack Properties")
+	uint32 AtkCounter;
+	
+	// Attack Count
+	UPROPERTY(EditAnywhere, Category = "Attack Properties")
+	uint32 AtkCounterMax = 1;
 	
 	// Remembers if the character can or can't be hit or hurt
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement Data")
@@ -46,6 +60,8 @@ protected:
 	// Bool to check if looking down
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement Data")
 	bool bIsLookingDown = false;
+	
+	bool bBonusAttack = false;
 
 public:
 	// Sets default values for this character's properties
@@ -75,6 +91,12 @@ protected:
 	
 	virtual void SphereTraceDamage(const FVector& StartLocation, const FVector& EndLocation, 
 		TArray<TEnumAsByte<EObjectTypeQuery>>& ObjectTypes, const float Radius = 20.0f) override;
+	
+	/* Functions Overriden from Base Class */
+
+	/// Sets the falling velocity from the Character Movement Component's Physics Volume
+	/// @param NewTerminalVelocity Determines the new falling velocity
+	virtual void SetTerminalVelocity(float NewTerminalVelocity) override;
 	
 	/* Public functions for access from AI Trees */
 public:

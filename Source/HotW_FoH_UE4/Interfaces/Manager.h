@@ -30,6 +30,8 @@ public:
 	
 	virtual void SetActiveCharacter(const int32 NewSlot, AActor* NewCharacter) = 0;
 	
+	virtual void SwitchCharacterID(const int32 NewSlot) = 0;
+	
 	virtual void LoadLevel(TSoftObjectPtr<UWorld> NewLevel) = 0;
 	
 	virtual void UnloadLevel() = 0;

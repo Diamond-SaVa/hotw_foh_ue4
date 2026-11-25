@@ -30,6 +30,11 @@ void AGM_Manager::SetActiveCharacter(const int32 NewSlot, AActor* NewCharacter)
 	OnCharacterSwitch.Broadcast(NewCharacter);
 }
 
+void AGM_Manager::SwitchCharacterID(const int32 NewSlot)
+{
+	CurrentCharacterSlot = NewSlot;
+}
+
 void AGM_Manager::LoadLevel(TSoftObjectPtr<UWorld> NewLevel)
 {
 	UWorld* TheWorld = GetWorld();

@@ -3,7 +3,6 @@
 
 #include "PC_B_Fighter.h"
 
-
 #include "HotW_FoH_UE4/Components/AC_Stats.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -13,6 +12,10 @@ APC_B_Fighter::APC_B_Fighter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	
+	StatsComponent = CreateDefaultSubobject<UAC_Stats>(FName("StatsComponent"));
+	
+	HitState = EHitState::EHit_Damage;
 }
 
 // Called when the game starts or when spawned
@@ -44,15 +47,26 @@ void APC_B_Fighter::Landed(const FHitResult& Hit)
 
 void APC_B_Fighter::TakeDamage(const int32 Damage)
 {
+	bool StatsValid = IsValid(StatsComponent);
+	
 	// Checks if the character is Damageable or if it's not already on a Hurt State or K.O.ed
 	if (HitState == EHitState::EHit_NoDamage || ActionState == EActionState::EAct_HurtState ||
-		ActionState == EActionState::EAct_KOed_State)
-	{
+		ActionState == EActionState::EAct_KOed_State || StatsValid == false)
+	{		
 		return;
 	}
 	
 	// Deals damage to the Stats Component
 	StatsComponent->DamageHP(Damage);
+
+	const bool IsAlive = StatsComponent->GetHP() > 0;
+	
+	HitState = IsAlive ? EHitState::EHit_Damage : EHitState::EHit_NoDamage;
+	
+	UAnimMontage* AnimToPlay = IsAlive ? AM_Damage : AM_KO;
+	
+	// Play damage animation
+	PlayAnimMontage_Safe(AnimToPlay);
 }
 
 void APC_B_Fighter::KnockbackFromSource(const FVector& DamageSourceLocation, const float KnockbackPower)
@@ -77,16 +91,13 @@ void APC_B_Fighter::SphereTraceDamage(const FVector& StartLocation, const FVecto
 	TArray<TEnumAsByte<EObjectTypeQuery>>& ObjectTypes, const float Radius)
 {
 	UWorld* World = GetWorld();
-	if (World == nullptr)
-	{
-		return;
-	}
-	
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
-	if (MoveComp == nullptr)
+	if (World == nullptr || MoveComp == nullptr || IsValid(StatsComponent) == false)
 	{
 		return;
 	}
+
+	const int32 FinalAtk = StatsComponent->GetATK(bBonusAttack);
 	
 	// Prepare the array with FHitResults
 	TArray<FHitResult> HitResults;
@@ -103,16 +114,42 @@ void APC_B_Fighter::SphereTraceDamage(const FVector& StartLocation, const FVecto
 			ObjectTypes,					// Object Type
 			false,							// bTraceComplex
 			{this}, 
-			EDrawDebugTrace::ForDuration,	// <--- Enforces the Debug Drawing
+			EDrawDebugTrace::None,	// <--- Enforces the Debug Drawing
 			HitResults, 
 			true,							// bIgnoreSelf
 			FLinearColor::Red,				// Trace Color
 			FLinearColor::Green,			// Hit Color
-			1.0f							// Draw Duration (Seconds)
+			DrawDamageTraceDuration			// Draw Duration (Seconds)
 		);
 		
 		//World->SweepMultiByChannel(HitResults, StartLocation, EndLocation, FQuat::Identity, TraceChannel, 
 		//Shape, QueryParams);
+	
+	if (bHit == false || HitResults.Num() == 0)
+	{
+		return;
+	}
+	
+	const FName HitTag = FName("HIT");
+	
+	for (int i = 0; i < HitResults.Num(); ++i)
+	{
+		if (const UPrimitiveComponent* Comp = HitResults[i].GetComponent())
+		{			
+			if (Comp->ComponentHasTag(HitTag))
+			{				
+				if (IDamageable* DamageableActor = Cast<IDamageable>(Comp->GetOwner()))
+				{
+					DamageableActor->TakeDamage(FinalAtk);
+				}
+			}
+		}
+	}
+}
+
+void APC_B_Fighter::SetTerminalVelocity(const float NewTerminalVelocity)
+{
+	Super::SetTerminalVelocity(NewTerminalVelocity);
 }
 
 void APC_B_Fighter::Attack()

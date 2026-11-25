@@ -124,13 +124,4 @@ public:
 	void ReenableSwitch();
 	
 	void SendCharacterToManager();
-<<<<<<< Updated upstream
-=======
-	
-protected:
-	/* Pure Virtual Interface Functions */
-	virtual void RegisterCharacterToControllerArray(AActor* PlayableCharacter, const int32 CharacterID) override;
-	
-	virtual void CheckIfCouldSwitchOnLanded() override;
->>>>>>> Stashed changes
 };

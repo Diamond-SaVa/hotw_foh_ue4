@@ -34,7 +34,7 @@ void ACam_Gameplay::BeginPlay()
 	;
 	if (APC_Control* PC = Cast<APC_Control>(World->GetFirstPlayerController()))
 	{
-		PC->SetViewTargetWithBlend(this, 1.0f, VTBlend_EaseOut, 2.0f);
+		PC->SetViewTargetWithBlend(this, 0.5f, VTBlend_EaseOut, 2.0f);
 	}
 }
 
@@ -48,11 +48,24 @@ void ACam_Gameplay::Tick(float DeltaTime)
 		return;	
 	}
 	
+	const FVector TargetVelocityVector = TargetActor.Get()->GetVelocity();
+	
+	float TargetVelocityLength = TargetVelocityVector.Z;
+	
+	TargetVelocityLength = FMath::Clamp(TargetVelocityLength, -4000.0f, 0.0f);
+	
+	float FallingVelocityLerp = FMath::Abs(TargetVelocityLength / VelocityMaxThreshold);
+	
+	FallingVelocityLerp = FMath::Clamp(FallingVelocityLerp, 0.0f, 1.0f);
+	
 	/* Set the new location of the Camera at runtime */
 	
 	// Prepare the smooth velocity at which the camera will follow each axis, as well as constant expression values.
 	const float FollowLerpX = DeltaTime * CameraSpeedX;
-	const float FollowLerpZ = DeltaTime * CameraSpeedZ;
+	
+	const float CameraSpeedExtraZ = CameraSpeedZ * 3.0f;
+	const float CameraSpeedZLerp = FMath::Lerp(CameraSpeedZ, CameraSpeedExtraZ, FallingVelocityLerp);
+	const float FollowLerpZ = DeltaTime * CameraSpeedZLerp;
 	
 	// Obtains the current location of the Camera
 	const FVector CurrentLocation = GetActorLocation();
@@ -62,7 +75,9 @@ void ACam_Gameplay::Tick(float DeltaTime)
 	FVector TargetLocation = TargetActor.Get()->GetActorLocation();
 	TargetLocation.X += TargetActor->GetActorForwardVector().X * OffsetFromTargetX;
 	TargetLocation.Y += OffsetFromTargetY;
-	TargetLocation.Z += OffsetFromTargetZ;
+	
+	const float OffsetZ = FMath::Lerp(OffsetFromTargetZ, -OffsetFromTargetZ, FallingVelocityLerp);
+	TargetLocation.Z += OffsetZ;
 	
 	// And finally prepare and set the final Location by Interpolating each appropriate value into their next
 	// value from the TargetLocation, and set it to this Camera's Location

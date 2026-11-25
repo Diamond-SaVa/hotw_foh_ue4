@@ -32,12 +32,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Anim Setters")
 	virtual void SetSpeedState(const ESpeedState NewState) = 0;
 	
-<<<<<<< Updated upstream
-=======
-	UFUNCTION(BlueprintCallable, Category="Mask Setters")
-	virtual void SetMaskState(const EMaskState NewState) = 0;
-	
->>>>>>> Stashed changes
 	UFUNCTION(BlueprintCallable, Category = "Anim Setters")
 	virtual void SetBoolGoingUp(const bool IsGoingUp) = 0;
 };

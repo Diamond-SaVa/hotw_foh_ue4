@@ -18,6 +18,9 @@ public:
 	TWeakObjectPtr<AActor> TargetActor;
 	
 protected:
+	UPROPERTY(EditAnywhere, Category="Cam_Gameplay")
+	float VelocityMaxThreshold = 3000.0f;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cam_Gameplay")
 	float OffsetFromTargetX = 100.0f;
 	
